@@ -26,9 +26,9 @@ export default function Hero() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px] bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(124,58,237,0.18),transparent)]"
       />
 
-      <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8 mt-6">
         {/* Top Announcement Pill */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-1">
           <div className="h-px w-8 bg-linear-to-r from-transparent to-white/20 sm:w-16" />
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-[#15161b]/80 px-3.5 py-1 text-xs text-zinc-300 shadow-sm backdrop-blur-md">
             <span className="text-xs">💼</span>
