@@ -1,15 +1,13 @@
-import { Navbar } from "@/components/navbar"
+import Hero from "@/components/hero"
+import Navbar from "@/components/Navbar"
 
 export default function Page() {
   return (
-    <div className="relative min-h-svh bg-[#0a0a0b] text-white">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] bg-[radial-gradient(ellipse_at_top,rgba(124,58,237,0.16),transparent_65%)]"
-      />
-
-      <Navbar />
-    </div>
-    
+    <>
+      <main className="min-h-screen bg-[#0a0a0b]">
+        <Navbar />
+        <Hero />
+      </main>
+    </>
   )
 }

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { MenuIcon } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import {
   Sheet,
   SheetContent,
@@ -26,7 +27,7 @@ const getStartedClassName = cn(
   "h-9 rounded-lg border-0 bg-violet-600 bg-linear-to-r from-violet-500 to-indigo-600 px-4 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.9)] hover:bg-violet-500 hover:from-violet-400 hover:to-indigo-500 hover:text-white focus-visible:ring-violet-400/50"
 )
 
-export function Navbar() {
+export default function Navbar() {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -62,7 +63,7 @@ export function Navbar() {
               </Link>
             ))}
           </div>
-          <span aria-hidden className="mx-1 h-5 w-px bg-white/15" />
+          <Separator orientation="vertical" className="mx-1 h-5 bg-white/15" />
           <Link
             href="/sign-in"
             className="rounded-lg px-3 py-2 text-sm font-medium text-violet-400 transition-colors hover:text-violet-300 focus-visible:ring-2 focus-visible:ring-violet-400/60 focus-visible:outline-none"
