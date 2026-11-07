@@ -72,7 +72,7 @@ function LinkedinIcon({ className }: { className?: string }) {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-[#0b0c10] px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+    <footer className="bg-black px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)] lg:gap-16">
           {/* Brand column */}
