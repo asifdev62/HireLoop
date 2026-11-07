@@ -62,11 +62,22 @@ export default function SignUpPage() {
 
   }
 
-  const handleGoogleSignUp = () => {
-    console.log("Google Sign Up clicked")
-    // TODO: Integrate Better Auth Google provider:
-    // await authClient.signIn.social({ provider: "google" })
+const handleGoogleSignUp = async () => {
+  try {
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+    })
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
+    toast.success("Redirecting to Google... Please wait!")
+  } catch {
+    toast.error("Google sign-up failed. Please try again.")
   }
+}
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black
