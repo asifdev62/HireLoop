@@ -1,25 +1,55 @@
-
 "use client"
 
 import React, { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
+import {
+  Briefcase,
+  Building2,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  ShieldCheck,
+  User,
+} from "lucide-react"
 import { authClient } from "@/lib/auth-client"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
+type Role = "seeker" | "recruiter" | "admin"
+
+const ROLES: {
+  value: Role
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}[] = [
+  { value: "seeker", label: "Seeker", icon: Briefcase },
+  { value: "recruiter", label: "Recruiter", icon: Building2 },
+  { value: "admin", label: "Admin", icon: ShieldCheck },
+]
+
 export default function SignUpPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    email: string
+    password: string
+    confirmPassword: string
+    role: Role
+    agreeToTerms: boolean
+  }>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    role: "seeker",
     agreeToTerms: false,
   })
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -41,11 +71,14 @@ export default function SignUpPage() {
       toast.error("Please agree to the Terms and Conditions.")
       return
     }
+
+    setIsLoading(true)
     try {
       const { error } = await authClient.signUp.email({
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        role: formData.role,
       })
       if (error) {
         toast.error(error.message)
@@ -55,33 +88,32 @@ export default function SignUpPage() {
       toast.success("Your account has been created successfully!")
 
       router.push("/")
-    } catch{
+    } catch {
       toast.error("Something went wrong. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
-
-
   }
 
-const handleGoogleSignUp = async () => {
-  try {
-    const { error } = await authClient.signIn.social({
-      provider: "google",
-    })
+  const handleGoogleSignUp = async () => {
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+      })
 
-    if (error) {
-      toast.error(error.message)
-      return
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.success("Redirecting to Google... Please wait!")
+    } catch {
+      toast.error("Google sign-up failed. Please try again.")
     }
-
-    toast.success("Redirecting to Google... Please wait!")
-  } catch {
-    toast.error("Google sign-up failed. Please try again.")
   }
-}
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black
-    px-4 py-12 text-white selection:bg-violet-500/30 selection:text-white sm:px-6 lg:px-8">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-4 py-12 text-white selection:bg-violet-500/30 selection:text-white sm:px-6 lg:px-8">
       {/* Background ambient radial glow */}
       <div
         aria-hidden="true"
@@ -118,9 +150,54 @@ const handleGoogleSignUp = async () => {
 
         {/* Card Container */}
         <div className="relative rounded-2xl border border-white/10 bg-[#121316]/90 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-8">
-
           {/* Sign Up Form */}
           <form onSubmit={handleSignUp} className="space-y-4">
+            {/* Role Selection */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-zinc-300">
+                I am a
+              </label>
+              <div
+                role="radiogroup"
+                aria-label="Select your role"
+                className="grid grid-cols-3 gap-2"
+              >
+                {ROLES.map(({ value, label, icon: Icon }) => {
+                  const isSelected = formData.role === value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          role: value,
+                        }))
+                      }
+                      className={cn(
+                        "group relative flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border p-2.5 text-center transition-all focus:ring-2 focus:ring-violet-500/40 focus:outline-none",
+                        isSelected
+                          ? "border-violet-500 bg-violet-600/15 text-white shadow-[0_0_15px_rgba(124,58,237,0.25)] ring-1 ring-violet-500/50"
+                          : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:bg-white/10 hover:text-zinc-200"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "size-4.5 transition-colors",
+                          isSelected
+                            ? "text-violet-400"
+                            : "text-zinc-400 group-hover:text-zinc-200"
+                        )}
+                      />
+                      <span className="text-xs font-medium">{label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Full Name Field */}
             <div>
               <label
@@ -274,12 +351,12 @@ const handleGoogleSignUp = async () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.9)] transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99]"
+              disabled={isLoading}
+              className="w-full rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.9)] transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Create Account
+              {isLoading ? "Creating account..." : "Create Account"}
             </button>
           </form>
-
 
           {/* Divider */}
           <div className="relative my-6 flex items-center justify-center">
