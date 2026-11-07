@@ -1,9 +1,13 @@
+
 "use client"
 
 import React, { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -13,11 +17,9 @@ export default function SignUpPage() {
     confirmPassword: "",
     agreeToTerms: false,
   })
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [submittedData, setSubmittedData] = useState<typeof formData | null>(
-    null
-  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -27,19 +29,37 @@ export default function SignUpPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    // Collect form data
-    console.log("Sign Up Form Data:", formData)
-    setSubmittedData(formData)
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match!")
+      return
+    }
 
-    // TODO: Integrate Better Auth:
-    // await authClient.signUp.email({
-    //   name: formData.name,
-    //   email: formData.email,
-    //   password: formData.password,
-    // })
+    if (!formData.agreeToTerms) {
+      toast.error("Please agree to the Terms and Conditions.")
+      return
+    }
+    try {
+      const { error } = await authClient.signUp.email({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      })
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.success("Your account has been created successfully!")
+
+      router.push("/")
+    } catch{
+      toast.error("Something went wrong. Please try again.")
+    }
+
+
   }
 
   const handleGoogleSignUp = () => {
@@ -63,7 +83,7 @@ export default function SignUpPage() {
 
       <div className="w-full max-w-md">
         {/* Logo & Header */}
-        <div className="mb-6 text-center">
+        <div className="mb-4 text-center">
           <Link
             href="/"
             className="inline-block transition-opacity hover:opacity-90"
@@ -77,7 +97,7 @@ export default function SignUpPage() {
               className="mx-auto h-9 w-auto"
             />
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
             Create an account
           </h1>
           <p className="mt-1.5 text-sm text-zinc-400">
@@ -87,24 +107,9 @@ export default function SignUpPage() {
 
         {/* Card Container */}
         <div className="relative rounded-2xl border border-white/10 bg-[#121316]/90 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-8">
-          {/* Segmented Toggle Between Sign In and Sign Up */}
-          <div className="mb-6 flex rounded-xl border border-white/10 bg-white/5 p-1">
-            <Link
-              href="/sign-in"
-              className="flex-1 rounded-lg py-2 text-center text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="flex-1 rounded-lg bg-linear-to-r from-violet-600 to-indigo-600 py-2 text-center text-xs font-semibold text-white shadow-sm"
-            >
-              Sign Up
-            </Link>
-          </div>
 
           {/* Sign Up Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSignUp} className="space-y-4">
             {/* Full Name Field */}
             <div>
               <label
@@ -264,7 +269,7 @@ export default function SignUpPage() {
             </button>
           </form>
 
-          
+
           {/* Divider */}
           <div className="relative my-6 flex items-center justify-center">
             <div className="h-px w-full bg-white/10" />
@@ -273,7 +278,7 @@ export default function SignUpPage() {
             </span>
           </div>
 
-           {/* Social Sign Up Button */}
+          {/* Social Sign Up Button */}
           <button
             type="button"
             onClick={handleGoogleSignUp}
@@ -299,16 +304,6 @@ export default function SignUpPage() {
             </svg>
             Sign up with Google
           </button>
-
-          {/* Data collection preview (for user convenience during development) */}
-          {submittedData && (
-            <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
-              <span className="font-semibold">Form data collected:</span>
-              <pre className="mt-1 font-mono text-[11px] text-zinc-300">
-                {JSON.stringify(submittedData, null, 2)}
-              </pre>
-            </div>
-          )}
 
           {/* Toggle to Sign In */}
           <p className="mt-6 text-center text-xs text-zinc-400">

@@ -1,9 +1,11 @@
 "use client"
-
+import { toast } from "sonner"
 import React, { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
+import { useRouter } from "next/navigation"
 
 export default function SignInPage() {
   const [formData, setFormData] = useState({
@@ -12,9 +14,7 @@ export default function SignInPage() {
     rememberMe: false,
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [submittedData, setSubmittedData] = useState<typeof formData | null>(
-    null
-  )
+  const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -24,18 +24,27 @@ export default function SignInPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    // Collect form data
-    console.log("Sign In Form Data:", formData)
-    setSubmittedData(formData)
+    try {
+      const { error } = await authClient.signIn.email({
+        email: formData.email,
+        password: formData.password,
+        rememberMe: formData.rememberMe,
+      })
 
-    // TODO: Integrate Better Auth:
-    // await authClient.signIn.email({
-    //   email: formData.email,
-    //   password: formData.password,
-    // })
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.success("Login successful!")
+
+      router.push("/")
+    } catch{
+      toast.error("Something went wrong. Please try again.")
+    }
   }
 
   const handleGoogleSignIn = () => {
@@ -58,7 +67,7 @@ export default function SignInPage() {
 
       <div className="w-full max-w-md">
         {/* Logo & Header */}
-        <div className="mb-6 text-center">
+        <div className="mb-4 text-center">
           <Link
             href="/"
             className="inline-block transition-opacity hover:opacity-90"
@@ -72,7 +81,7 @@ export default function SignInPage() {
               className="mx-auto h-9 w-auto"
             />
           </Link>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
             Welcome back
           </h1>
           <p className="mt-1.5 text-sm text-zinc-400">
@@ -82,24 +91,8 @@ export default function SignInPage() {
 
         {/* Card Container */}
         <div className="relative rounded-2xl border border-white/10 bg-[#121316]/90 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-8">
-          {/* Segmented Toggle Between Sign In and Sign Up */}
-          <div className="mb-6 flex rounded-xl border border-white/10 bg-white/5 p-1">
-            <Link
-              href="/sign-in"
-              className="flex-1 rounded-lg bg-linear-to-r from-violet-600 to-indigo-600 py-2 text-center text-xs font-semibold text-white shadow-sm"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="flex-1 rounded-lg py-2 text-center text-xs font-semibold text-zinc-400 transition-colors hover:text-white"
-            >
-              Sign Up
-            </Link>
-          </div>
-
           {/* Sign In Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSignIn} className="space-y-4">
             {/* Email Field */}
             <div>
               <label
@@ -193,7 +186,7 @@ export default function SignInPage() {
             </button>
           </form>
 
-            {/* Divider */}
+          {/* Divider */}
           <div className="relative my-6 flex items-center justify-center">
             <div className="h-px w-full bg-white/10" />
             <span className="absolute bg-[#121316] px-3 text-xs font-medium text-zinc-500 uppercase">
@@ -201,7 +194,6 @@ export default function SignInPage() {
             </span>
           </div>
 
-          
           {/* Social Sign In Button */}
           <button
             type="button"
@@ -228,16 +220,6 @@ export default function SignInPage() {
             </svg>
             Continue with Google
           </button>
-
-          {/* Data collection preview (for user convenience during development) */}
-          {submittedData && (
-            <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300">
-              <span className="font-semibold">Form data collected:</span>
-              <pre className="mt-1 font-mono text-[11px] text-zinc-300">
-                {JSON.stringify(submittedData, null, 2)}
-              </pre>
-            </div>
-          )}
 
           {/* Toggle to Sign Up */}
           <p className="mt-6 text-center text-xs text-zinc-400">

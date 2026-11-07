@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import Navbar from "@/components/Navbar"
 import { init } from "next/dist/compiled/webpack/webpack"
+import { Toaster } from "sonner"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -30,6 +31,7 @@ export default function RootLayout({
       )}
     >
       <body className="bg-black">
+        <Toaster position="top-right" richColors />
         <ThemeProvider>
           <Navbar />
           {children}
