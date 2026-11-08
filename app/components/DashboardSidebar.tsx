@@ -19,7 +19,9 @@ import {
   CreditCard,
   FileText,
   LayoutDashboard,
+  Plus,
   Settings,
+  User,
   Users,
 } from "lucide-react"
 
@@ -80,9 +82,15 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       icon: LayoutDashboard,
     },
     {
-      id: "recruiter-jobs",
-      name: "Jobs",
-      url: "/dashboard/recruiter/jobs",
+       id: "recruiter-add jobs",
+      name: "Add Jobs",
+      url: "/dashboard/recruiter/add-jobs",
+      icon: Plus,
+    },
+    {
+      id: "recruiter-manage-jobs",
+      name: "Manage Jobs",
+      url: "/dashboard/recruiter/manage-jobs",
       icon: Briefcase,
     },
     {
@@ -91,18 +99,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       url: "/dashboard/recruiter/applicants",
       icon: Users,
     },
-    {
-      id: "recruiter-company",
-      name: "Company Profile",
-      url: "/dashboard/recruiter/company",
-      icon: Building2,
-    },
-    {
-      id: "recruiter-billing",
-      name: "Billing",
-      url: "/dashboard/recruiter/billing",
-      icon: CreditCard,
-    },
+   
     {
       id: "recruiter-settings",
       name: "Settings",
@@ -118,28 +115,29 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       url: "/dashboard/admin",
       icon: LayoutDashboard,
     },
-    {
-      id: "admin-jobs",
-      name: "Jobs",
-      url: "/dashboard/admin/jobs",
-      icon: Briefcase,
-    },
-    {
+     {
       id: "admin-users",
       name: "Users",
       url: "/dashboard/admin/users",
-      icon: Users,
+      icon: User,
     },
+
     {
       id: "admin-companies",
       name: "Companies",
       url: "/dashboard/admin/companies",
       icon: Building2,
     },
+     {
+      id: "admin-jobs",
+      name: "Jobs",
+      url: "/dashboard/admin/jobs",
+      icon: Briefcase,
+    },
     {
-      id: "admin-billing",
-      name: "Billing",
-      url: "/dashboard/admin/billing",
+      id: "admin-payments",
+      name: "Payments",
+      url: "/dashboard/admin/payments",
       icon: CreditCard,
     },
     {
@@ -187,3 +185,12 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
+
+
+
+
+
+
+
+
+
