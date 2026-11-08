@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar"
 export default function Page() {
   return (
     <>
-      <main>
+      <main className="relative isolate min-h-screen bg-black">
         <Navbar />
         <Hero />
         <Cta />
