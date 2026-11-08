@@ -19,13 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { createJob } from "@/lib/actions/jobs";
  
 export default function AddJobsPage() {
   const [isRemote, setIsRemote] = useState(false)
   const [jobType, setJobType] = useState("Full-time")
   const [isSubmitting, setIsSubmitting] = useState(false)
  
-  const [formData, setFormData] = useState({
+ const [formData, setFormData] = useState({
     title: "",
     companyName: "",
     category: "",
@@ -57,6 +58,11 @@ export default function AddJobsPage() {
       toast.error("Please select a job category.")
       return
     }
+
+      if (Number(formData.minSalary) > Number(formData.maxSalary)) {
+    toast.error("Maximum salary must be greater than minimum salary.")
+    return
+  }
  
     const jobData = {
       ...formData,
@@ -70,12 +76,20 @@ export default function AddJobsPage() {
       setIsSubmitting(true)
  
       // TODO: Send jobData to your backend API.
-      console.log("New Job Data:", jobData)
- 
-      toast.success("Job information collected successfully!")
-    } catch {
-      toast.error("Something went wrong. Please try again.")
-    } finally {
+      const result = await createJob(jobData)
+      console.log("createdJob", result)
+      
+      toast.success("Job published successfully!")
+
+    } catch (error) {
+  console.error("Create Job Error:", error)
+
+  toast.error(
+    error instanceof Error
+      ? error.message
+      : "Something went wrong. Please try again."
+  )
+} finally {
       setIsSubmitting(false)
     }
   }
