@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react"
 
 const SeekerDashboardPage = () => {
-    return (
-        <div>
-            <h2>Seeker</h2>
-        </div>
-    );
-};
+  return (
+    <div>
+      <h2>Seeker</h2>
+    </div>
+  )
+}
 
-export default SeekerDashboardPage;
+export default SeekerDashboardPage

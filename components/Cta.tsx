@@ -5,7 +5,10 @@ export default function Cta() {
   return (
     <section className="relative isolate overflow-hidden bg-black px-4 pt-20 pb-14 sm:px-6 sm:pt-28 sm:pb-20 lg:px-8">
       {/* Glow + grid backdrop */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+      >
         <div className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(ellipse_70%_60%_at_50%_8%,rgba(79,70,229,0.55),rgba(49,46,129,0.22)_48%,transparent_75%)] sm:h-[620px]" />
         <div className="absolute inset-x-0 top-0 h-[520px] [mask-image:linear-gradient(to_bottom,black_0%,black_48%,transparent_76%)] sm:h-[640px]">
           <Image

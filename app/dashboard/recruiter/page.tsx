@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react"
 
 const RecruiterDashboardPage = () => {
-    return (
-        <div>
-            <h2>Recruiter</h2>
-        </div>
-    );
-};
+  return (
+    <div>
+      <h2>Recruiter</h2>
+    </div>
+  )
+}
 
-export default RecruiterDashboardPage;
+export default RecruiterDashboardPage

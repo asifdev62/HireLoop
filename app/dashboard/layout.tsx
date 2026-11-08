@@ -1,5 +1,5 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { DashboardSidebar } from "../components/DashboardSidebar";
+import { DashboardSidebar } from "../components/DashboardSidebar"
 
 const dashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -11,6 +11,6 @@ const dashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </main>
     </SidebarProvider>
   )
-};
+}
 
-export default dashboardLayout;
+export default dashboardLayout

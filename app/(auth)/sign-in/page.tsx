@@ -24,7 +24,6 @@ export default function SignInPage() {
     }))
   }
 
-  
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -43,27 +42,27 @@ export default function SignInPage() {
       toast.success("Login successful!")
 
       router.push("/")
-    } catch{
+    } catch {
       toast.error("Something went wrong. Please try again.")
     }
   }
 
   const handleGoogleSignIn = async () => {
-  try {
-    const { error } = await authClient.signIn.social({
-      provider: "google",
-    })
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+      })
 
-    if (error) {
-      toast.error(error.message)
-      return
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+
+      toast.success("Redirecting to Google... Please wait!")
+    } catch {
+      toast.error("Google sign-in failed. Please try again.")
     }
-
-    toast.success("Redirecting to Google... Please wait!")
-  } catch {
-    toast.error("Google sign-in failed. Please try again.")
   }
-}
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#070709] px-4 py-12 text-white selection:bg-violet-500/30 selection:text-white sm:px-6 lg:px-8">

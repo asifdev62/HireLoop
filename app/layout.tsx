@@ -30,10 +30,7 @@ export default function RootLayout({
     >
       <body>
         <Toaster position="top-right" richColors />
-        <ThemeProvider>
-          
-          {children}
-          </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )

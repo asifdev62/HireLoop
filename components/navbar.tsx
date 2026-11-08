@@ -27,12 +27,6 @@ const navLinks = [
   { label: "Pricing", href: "/pricing" },
 ]
 
-const signInButtonClassName =
-  "inline-flex h-9 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-[#645BFF] shadow-[0_2px_4px_rgba(0,0,0,0.03),inset_0_3px_10px_rgba(255,255,255,0.2)] border border-[#090A15]/10 transition-all hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 cursor-pointer"
-
-const getStartedButtonClassName =
-  "inline-flex h-9 items-center justify-center rounded-lg bg-[#5C53FE] px-4.5 text-sm font-medium text-[#EDEDEF] shadow-[0_2px_4px_rgba(0,0,0,0.03),inset_0_3px_10px_rgba(255,255,255,0.2)] border border-[#090A15]/10 transition-all hover:bg-[#4f46e5] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 cursor-pointer"
-
 const iconButtonClassName =
   "rounded-lg p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
 
@@ -118,7 +112,7 @@ function UserActions({
             <button
               type="button"
               aria-label="Open profile menu"
-              className="ml-1 rounded-full transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none cursor-pointer"
+              className="ml-1 cursor-pointer rounded-full transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
             />
           }
         >
@@ -186,7 +180,7 @@ function UserActions({
                   type="button"
                   onClick={onSignOut}
                   disabled={isSigningOut}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <LogOut className="size-4" />
                   {isSigningOut ? "Signing out..." : "Sign Out"}
@@ -231,22 +225,22 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
-      {/* Background ambient light */}
+      {/* Background subtle cosmic ambient glow */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(92,83,254,0.15),transparent)]"
       />
 
-      {/* Main Navbar container: Frame 2147234461 (1320x74) in Figma */}
+      {/* Main Navbar container matching Figma: 1320px wide, rounded-2xl, dark card #141418 */}
       <nav
         aria-label="Main"
-        className="mx-auto flex h-[68px] sm:h-[74px] w-full max-w-[1320px] items-center justify-between rounded-[14px] border border-white/[0.07] bg-[#141418] px-5 sm:px-6 shadow-[0_1px_2px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl"
+        className="mx-auto flex h-16 w-full max-w-[1320px] items-center justify-between rounded-2xl border border-white/[0.08] bg-[#141418]/95 px-5 shadow-[0_1px_2px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl sm:h-[72px] sm:px-7"
       >
-        {/* Logo */}
+        {/* Logo on Left */}
         <Link
           href="/"
           aria-label="hireloop home"
-          className="shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60"
+          className="shrink-0 rounded-md focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
         >
           <Image
             src="/images/logo.png"
@@ -258,9 +252,10 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Desktop Navbar Inner Frame: nav-bar (588x68) in Figma */}
-        <div className="hidden md:flex items-center rounded-lg border border-white/[0.07] bg-[#1A1A1F] px-3.5 py-1.5 sm:px-4">
-          <div className="flex items-center gap-5 lg:gap-6">
+        {/* Right Navigation items matching Figma screenshot */}
+        <div className="hidden items-center gap-6 md:flex lg:gap-8">
+          {/* Links: Browse Jobs, Company, Pricing */}
+          <div className="flex items-center gap-6 lg:gap-7">
             {navLinks.map((link) => {
               const isActive = pathname === link.href
               return (
@@ -268,10 +263,8 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "text-sm font-medium transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 rounded-md px-1 py-1",
-                    isActive
-                      ? "text-[#EDEDEF] font-semibold"
-                      : "text-[#EDEDEF]/80"
+                    "text-sm font-medium transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none",
+                    isActive ? "font-semibold text-white" : "text-zinc-300"
                   )}
                 >
                   {link.label}
@@ -280,8 +273,10 @@ export default function Navbar() {
             })}
           </div>
 
-          <Separator orientation="vertical" className="mx-3 sm:mx-4 h-5 bg-white/20" />
+          {/* Vertical Separator */}
+          <Separator orientation="vertical" className="h-5 bg-white/20" />
 
+          {/* Auth Section */}
           {isPending ? (
             <div
               aria-hidden="true"
@@ -297,11 +292,20 @@ export default function Navbar() {
               onNavigate={() => setOpen(false)}
             />
           ) : (
-            <div className="flex items-center gap-2.5">
-              <Link href="/sign-in" className={signInButtonClassName}>
+            <div className="flex items-center gap-4 lg:gap-5">
+              {/* Sign In (Purple text link as in Figma screenshot) */}
+              <Link
+                href="/sign-in"
+                className="text-sm font-medium text-[#7C65C1] transition-colors hover:text-[#9b88e6] focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
+              >
                 Sign In
               </Link>
-              <Link href="/sign-up" className={getStartedButtonClassName}>
+
+              {/* Get Started (Vibrant purple pill button as in Figma screenshot) */}
+              <Link
+                href="/sign-up"
+                className="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-[#5C53FE] px-5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(92,83,254,0.4)] transition-all hover:bg-[#4f46e5] hover:shadow-[0_4px_20px_rgba(92,83,254,0.6)] active:scale-95"
+              >
                 Get Started
               </Link>
             </div>
@@ -316,7 +320,7 @@ export default function Navbar() {
                 variant="ghost"
                 size="icon"
                 aria-label="Open menu"
-                className="text-white hover:bg-white/10 hover:text-white md:hidden cursor-pointer"
+                className="cursor-pointer text-white hover:bg-white/10 hover:text-white md:hidden"
               />
             }
           >
@@ -353,10 +357,10 @@ export default function Navbar() {
                     href={link.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60",
+                      "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none",
                       isActive
-                        ? "bg-white/5 text-white font-semibold"
-                        : "text-white/70"
+                        ? "bg-white/5 font-semibold text-white"
+                        : "text-zinc-300"
                     )}
                   >
                     {link.label}
@@ -387,14 +391,14 @@ export default function Navbar() {
                   <Link
                     href="/sign-in"
                     onClick={() => setOpen(false)}
-                    className={cn(signInButtonClassName, "h-10 w-full justify-center")}
+                    className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-white/15 bg-transparent text-sm font-medium text-[#7C65C1] transition-colors hover:bg-white/5"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/sign-up"
                     onClick={() => setOpen(false)}
-                    className={cn(getStartedButtonClassName, "h-10 w-full justify-center")}
+                    className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-[#5C53FE] text-sm font-semibold text-white shadow-[0_2px_12px_rgba(92,83,254,0.4)] transition-all hover:bg-[#4f46e5]"
                   >
                     Get Started
                   </Link>
