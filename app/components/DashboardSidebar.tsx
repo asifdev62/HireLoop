@@ -24,6 +24,7 @@ import {
   User,
   Users,
 } from "lucide-react"
+import Link from "next/link"
 
 type DashboardRole = "seeker" | "recruiter" | "admin"
 
@@ -82,7 +83,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       icon: LayoutDashboard,
     },
     {
-       id: "recruiter-add jobs",
+       id: "recruiter-add-jobs",
       name: "Add Jobs",
       url: "/dashboard/recruiter/add-jobs",
       icon: Plus,
@@ -170,7 +171,7 @@ export function DashboardSidebar() {
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     isActive={pathname === item.url}
-                    render={<a href={item.url} />}
+                    render={<Link href={item.url} />}
                   >
                     <Icon />
                     <span>{item.name}</span>

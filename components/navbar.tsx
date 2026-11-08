@@ -201,6 +201,7 @@ export default function Navbar() {
   const [isSigningOut, setIsSigningOut] = React.useState(false)
   const { data: session, isPending } = authClient.useSession()
   const user = session?.user
+  const dashboardHref = `/dashboard/${user?.role || "seeker"}`
 
   async function handleSignOut() {
     setIsSigningOut(true)
@@ -271,6 +272,21 @@ export default function Navbar() {
                 </Link>
               )
             })}
+
+            {user && (
+              <Link
+                href={dashboardHref}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none",
+                  pathname === dashboardHref
+                    ? "bg-white/5 font-semibold text-white"
+                    : "text-zinc-300"
+                )}
+              >
+                Dashboard
+              </Link>
+            )}
           </div>
 
           {/* Vertical Separator */}
@@ -367,6 +383,20 @@ export default function Navbar() {
                   </Link>
                 )
               })}
+              {!isPending && user && (
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none",
+                    pathname === dashboardHref
+                      ? "bg-white/5 font-semibold text-white"
+                      : "text-zinc-300"
+                  )}
+                >
+                  Dashboard
+                </Link>
+              )}
             </div>
 
             <div className="mt-auto border-t border-white/10 p-4">
