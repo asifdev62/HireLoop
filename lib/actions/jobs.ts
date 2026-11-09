@@ -1,8 +1,6 @@
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
-
-type JobData = {
+export type JobData = {
   title: string
   companyName: string
   category: string
@@ -23,7 +21,7 @@ export const createJob = async (data: JobData) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   })
 
   if (!res.ok) {
