@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+.dark-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 #09090b;
+}
+
+.dark-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 9999px;
+}
