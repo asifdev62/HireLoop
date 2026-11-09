@@ -774,24 +774,30 @@ export default function ManageJobsPage() {
             <>
               {/* Table — xl and up */}
               <div className="dark-scrollbar hidden overflow-x-auto xl:block">
-                <table className="w-full min-w-[1050px] border-collapse text-left">
+                <table className="w-full min-w-[860px] border-collapse text-left">
                   <thead>
                     <tr className="border-b border-white/[0.07]">
                       {[
-                        "Job Title & Dept",
-                        "Company & Location",
-                        "Type",
-                        "Compensation",
-                        "Applicants",
-                        "Status",
-                        "Deadline",
-                      ].map((heading) => (
+                        { label: "Job Title & Dept" },
+                        { label: "Company & Location" },
+                        { label: "Type" },
+                        { label: "Compensation" },
+                        {
+                          label: "Applicants",
+                          className: "hidden 2xl:table-cell",
+                        },
+                        { label: "Status" },
+                        {
+                          label: "Deadline",
+                          className: "hidden 2xl:table-cell",
+                        },
+                      ].map(({ label, className = "" }) => (
                         <th
-                          key={heading}
+                          key={label}
                           scope="col"
-                          className="px-4 py-3.5 text-[10px] font-medium tracking-[0.12em] whitespace-nowrap text-zinc-500 uppercase"
+                          className={`px-4 py-3.5 text-[10px] font-medium tracking-[0.12em] whitespace-nowrap text-zinc-500 uppercase ${className}`}
                         >
-                          {heading}
+                          {label}
                         </th>
                       ))}
 
@@ -846,7 +852,7 @@ export default function ManageJobsPage() {
                             </span>
                           </td>
 
-                          <td className="px-4 py-4">
+                          <td className="hidden px-4 py-4 2xl:table-cell">
                             <Applicants count={job.applicants ?? 0} />
                           </td>
 
@@ -854,7 +860,7 @@ export default function ManageJobsPage() {
                             <StatusBadge status={getStatus(job)} />
                           </td>
 
-                          <td className="px-4 py-4">
+                          <td className="hidden px-4 py-4 2xl:table-cell">
                             <Deadline job={job} />
                           </td>
 

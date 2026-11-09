@@ -105,10 +105,10 @@ export default function AddJobsPage() {
   const labelClass = "text-xs font-medium text-zinc-400"
  
   const sectionClass =
-    "space-y-5 rounded-xl border border-white/[0.06] bg-[#141418] p-5 sm:p-6"
+    "space-y-5 rounded-xl border border-white/[0.06] bg-[#141418] p-4 sm:p-6"
  
   return (
-    <div className="w-full px-15 py-6 text-white sm:px-6 lg:px-20">
+    <div className="mx-auto w-full max-w-[1200px] px-4 py-6 text-white sm:px-6 lg:px-12 xl:px-20">
       <div className="w-full space-y-7">
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -197,7 +197,7 @@ export default function AddJobsPage() {
  
             <div className="space-y-3">
               <Label className={labelClass}>Job Type *</Label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                 {["Full-time", "Part-time", "Contract", "Internship"].map(
                   (type) => (
                     <button
@@ -225,17 +225,21 @@ export default function AddJobsPage() {
               Location, Compensation & Timeline
             </h2>
  
-            <div className="flex items-center justify-between rounded-lg border border-white/10 bg-[#1C1C20] p-4">
-              <div className="flex items-center gap-3">
-                <Globe className="size-5 text-[#9B8CFF]" />
-                <div>
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1C1C20] p-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <Globe className="size-5 shrink-0 text-[#9B8CFF]" />
+                <div className="min-w-0">
                   <p className="text-sm font-medium">Remote Work Allowed</p>
                   <p className="text-xs text-zinc-500">
                     Enable worldwide or distributed candidate applications.
                   </p>
                 </div>
               </div>
-              <Switch checked={isRemote} onCheckedChange={setIsRemote} />
+              <Switch
+                checked={isRemote}
+                onCheckedChange={setIsRemote}
+                className="shrink-0"
+              />
             </div>
  
             <div className="grid gap-5 sm:grid-cols-2">
@@ -272,7 +276,7 @@ export default function AddJobsPage() {
               </div>
             </div>
  
-            <div className="grid gap-5 sm:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="minSalary" className={labelClass}>
                   Minimum Salary *
@@ -380,7 +384,7 @@ export default function AddJobsPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#5C53FE] p-5 text-white hover:bg-[#4F46E5]"
+              className="w-full bg-[#5C53FE] p-5 text-white hover:bg-[#4F46E5] sm:w-auto"
             >
               {isSubmitting ? "Publishing..." : "Publish Job"}
               <FaArrowRightToBracket />
