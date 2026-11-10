@@ -1,12 +1,24 @@
-
 "use client"
- 
-import { useState, type FormEvent } from "react"
-import { toast } from "sonner"
-import { Globe, MapPin, CalendarDays, DollarSign } from "lucide-react"
-import { FaArrowRightToBracket } from "react-icons/fa6";
 
- 
+/**
+ * Add Jobs page.
+ *
+ * This file only contains the form:
+ *   - form state (what the user typed)
+ *   - validation + submit (send the job to the API)
+ *   - the form layout
+ *
+ * The dropdown options (categories, job types, salary frequencies) and the
+ * starting form values come from ../_data/jobData so this page and the
+ * manage-jobs page always stay in sync.
+ */
+
+import { useState, type FormEvent } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "@/components/ui/toast"
+import { Globe, MapPin, CalendarDays, DollarSign } from "lucide-react"
+import { FaArrowRightToBracket } from "react-icons/fa6"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -19,51 +31,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createJob } from "@/lib/actions/jobs";
- 
+import { createJob } from "@/lib/actions/jobs"
+import {
+  EMPTY_JOB_FORM,
+  JOB_CATEGORIES,
+  JOB_TYPES,
+  SALARY_FREQUENCIES,
+  type JobFormData,
+} from "../_data/jobData"
+
+// Shared Tailwind classes so every field looks the same.
+const inputClass =
+  "border-white/10 bg-[#1C1C20] text-white placeholder:text-zinc-500 focus-visible:ring-[#5C53FE]"
+
+// SelectTrigger defaults to w-fit, so force full width to match the inputs.
+const selectClass = `${inputClass} h-9 w-full data-[placeholder]:text-zinc-500`
+
+const selectContentClass = "border-white/10 bg-[#1C1C20] text-white"
+
+const labelClass = "text-xs font-medium text-zinc-400"
+
+const sectionClass =
+  "space-y-5 rounded-xl border border-white/[0.06] bg-[#141418] p-4 sm:p-6"
+
 export default function AddJobsPage() {
+  const router = useRouter()
+
+  // Extra fields that are not plain text inputs.
   const [isRemote, setIsRemote] = useState(false)
   const [jobType, setJobType] = useState("Full-time")
   const [isSubmitting, setIsSubmitting] = useState(false)
- 
- const [formData, setFormData] = useState({
-    title: "",
-    companyName: "",
-    category: "",
-    location: "",
-    deadline: "",
-    minSalary: "",
-    maxSalary: "",
-    salaryFrequency: "per month",
-    responsibilities: "",
-    qualifications: "",
-  })
- 
+
+  // All the text inputs live in one object.
+  const [formData, setFormData] = useState<JobFormData>(EMPTY_JOB_FORM)
+
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) {
     const { name, value } = e.target
- 
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }))
   }
- 
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
- 
-    // shadcn Select does not support the native `required` attribute
+
+    // shadcn Select does not support the native `required` attribute.
     if (!formData.category) {
-      toast.error("Please select a job category.")
+      toast.add({
+        title: "Category Required",
+        description: "Please select a job category.",
+        type: "error",
+      })
       return
     }
 
-      if (Number(formData.minSalary) > Number(formData.maxSalary)) {
-    toast.error("Maximum salary must be greater than minimum salary.")
-    return
-  }
- 
+    if (Number(formData.minSalary) > Number(formData.maxSalary)) {
+      toast.add({
+        title: "Invalid Salary Range",
+        description: "Maximum salary must be greater than minimum salary.",
+        type: "error",
+      })
+      return
+    }
+
+    // Salaries are text in the form, but numbers for the API.
     const jobData = {
       ...formData,
       jobType,
@@ -71,42 +106,37 @@ export default function AddJobsPage() {
       minSalary: Number(formData.minSalary),
       maxSalary: Number(formData.maxSalary),
     }
- 
+
     try {
       setIsSubmitting(true)
- 
-      // TODO: Send jobData to your backend API.
+
       const result = await createJob(jobData)
       console.log("createdJob", result)
-      
-      toast.success("Job published successfully!")
 
+      toast.add({
+        title: "Job Created",
+        description: "The job has been successfully created.",
+        type: "success",
+      })
+
+      // Go to the manage-jobs page after a successful create.
+      router.push("/dashboard/recruiter/manage-jobs")
     } catch (error) {
-  console.error("Create Job Error:", error)
+      console.error("Create Job Error:", error)
 
-  toast.error(
-    error instanceof Error
-      ? error.message
-      : "Something went wrong. Please try again."
-  )
-} finally {
+      toast.add({
+        title: "Create Job Failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+        type: "error",
+      })
+    } finally {
       setIsSubmitting(false)
     }
   }
- 
-  const inputClass =
-    "border-white/10 bg-[#1C1C20] text-white placeholder:text-zinc-500 focus-visible:ring-[#5C53FE]"
- 
-  // SelectTrigger defaults to w-fit, so force full width to match the inputs
-  const selectClass = `${inputClass} h-9 w-full data-[placeholder]:text-zinc-500`
- 
-  const selectContentClass = "border-white/10 bg-[#1C1C20] text-white"
- 
-  const labelClass = "text-xs font-medium text-zinc-400"
- 
-  const sectionClass =
-    "space-y-5 rounded-xl border border-white/[0.06] bg-[#141418] p-4 sm:p-6"
- 
+
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6 text-white sm:px-6 lg:px-12 xl:px-20">
       <div className="w-full space-y-7">
@@ -123,17 +153,16 @@ export default function AddJobsPage() {
               Fill in the position specifications to attract qualified talent.
             </p>
           </div>
- 
         </div>
- 
+
         <form id="add-job-form" onSubmit={handleSubmit} className="space-y-5">
-          {/* Basic Information */}
+          {/* 1. Basic Information */}
           <section className={sectionClass}>
             <h2 className="text-sm font-semibold">
               <span className="mr-2 text-[#7C65FF]">1.</span>
               Basic Information
             </h2>
- 
+
             <div className="space-y-2">
               <Label htmlFor="title" className={labelClass}>
                 Job Title *
@@ -148,7 +177,7 @@ export default function AddJobsPage() {
                 required
               />
             </div>
- 
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="companyName" className={labelClass}>
@@ -164,7 +193,7 @@ export default function AddJobsPage() {
                   required
                 />
               </div>
- 
+
               <div className="space-y-2">
                 <Label className={labelClass}>Job Category *</Label>
                 <Select
@@ -177,54 +206,44 @@ export default function AddJobsPage() {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
-                    <SelectItem value="Engineering & Tech">
-                      Engineering & Tech
-                    </SelectItem>
-                    <SelectItem value="Design & Creative">
-                      Design & Creative
-                    </SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Business">Business</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Customer Support">
-                      Customer Support
-                    </SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    {JOB_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
- 
+
             <div className="space-y-3">
               <Label className={labelClass}>Job Type *</Label>
               <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-                {["Full-time", "Part-time", "Contract", "Internship"].map(
-                  (type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setJobType(type)}
-                      className={`rounded-lg border px-3 py-2.5 text-sm transition ${
-                        jobType === type
-                          ? "border-[#5C53FE] bg-[#5C53FE]/15 text-white"
-                          : "border-white/10 bg-[#1C1C20] text-zinc-400 hover:border-white/20"
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  )
-                )}
+                {JOB_TYPES.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setJobType(type)}
+                    className={`rounded-lg border px-3 py-2.5 text-sm transition ${
+                      jobType === type
+                        ? "border-[#5C53FE] bg-[#5C53FE]/15 text-white"
+                        : "border-white/10 bg-[#1C1C20] text-zinc-400 hover:border-white/20"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
           </section>
- 
-          {/* Location & Compensation */}
+
+          {/* 2. Location, Compensation & Timeline */}
           <section className={sectionClass}>
             <h2 className="text-sm font-semibold">
               <span className="mr-2 text-[#7C65FF]">2.</span>
               Location, Compensation & Timeline
             </h2>
- 
+
             <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1C1C20] p-4">
               <div className="flex min-w-0 items-center gap-3">
                 <Globe className="size-5 shrink-0 text-[#9B8CFF]" />
@@ -241,7 +260,7 @@ export default function AddJobsPage() {
                 className="shrink-0"
               />
             </div>
- 
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="location" className={labelClass}>
@@ -258,7 +277,7 @@ export default function AddJobsPage() {
                   required
                 />
               </div>
- 
+
               <div className="space-y-2">
                 <Label htmlFor="deadline" className={labelClass}>
                   <CalendarDays className="mr-1 inline size-3.5" />
@@ -275,7 +294,7 @@ export default function AddJobsPage() {
                 />
               </div>
             </div>
- 
+
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="minSalary" className={labelClass}>
@@ -296,7 +315,7 @@ export default function AddJobsPage() {
                   />
                 </div>
               </div>
- 
+
               <div className="space-y-2">
                 <Label htmlFor="maxSalary" className={labelClass}>
                   Maximum Salary *
@@ -316,7 +335,7 @@ export default function AddJobsPage() {
                   />
                 </div>
               </div>
- 
+
               <div className="space-y-2">
                 <Label className={labelClass}>Salary Frequency</Label>
                 <Select
@@ -332,23 +351,24 @@ export default function AddJobsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
-                    <SelectItem value="per hour">Per hour</SelectItem>
-                    <SelectItem value="per day">Per day</SelectItem>
-                    <SelectItem value="per month">Per month</SelectItem>
-                    <SelectItem value="per year">Per year</SelectItem>
+                    {SALARY_FREQUENCIES.map(({ value, label }) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </section>
- 
-          {/* Responsibilities & Requirements */}
+
+          {/* 3. Responsibilities & Requirements */}
           <section className={sectionClass}>
             <h2 className="text-sm font-semibold">
               <span className="mr-2 text-[#7C65FF]">3.</span>
               Responsibilities & Requirements
             </h2>
- 
+
             <div className="space-y-2">
               <Label htmlFor="responsibilities" className={labelClass}>
                 Key Responsibilities *
@@ -363,7 +383,7 @@ export default function AddJobsPage() {
                 required
               />
             </div>
- 
+
             <div className="space-y-2">
               <Label htmlFor="qualifications" className={labelClass}>
                 Qualifications & Requirements *
@@ -379,7 +399,7 @@ export default function AddJobsPage() {
               />
             </div>
           </section>
- 
+
           <div className="flex justify-end">
             <Button
               type="submit"
@@ -395,5 +415,3 @@ export default function AddJobsPage() {
     </div>
   )
 }
- 
-
