@@ -2,31 +2,35 @@
 
 /**
  * The search bar at the top of the browse-jobs page.
- * It only renders the input and the button; the page decides what happens
- * on submit (see browse-jobs-view.tsx).
+ * It puts the typed keyword into the URL as `?search=...`, and page.tsx reads
+ * that param on the server (see browse-jobs-view.tsx / page.tsx).
  */
 
 import { Search } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import type { FormEvent } from "react"
 
+export function JobSearchBar() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-export function JobSearchBar(){
-  const router = useRouter();
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) =>{
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const formData = new FormData(event.currentTarget)
-    const data = Object.fromEntries(formData.entries())
+    const search = String(formData.get("searchField") ?? "").trim()
 
-    console.log(data)
-    const search = data.searchField;
+    // Empty search = clear everything and show all jobs again.
+    if (!search) {
+      router.push("/browse-jobs")
+      return
+    }
 
-    const params = new URLSearchParams();
-    params.set('search', search as string)
+    // Keep the other params (the active filter) and only change `search`.
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("search", search)
+
     router.push(`/browse-jobs?${params.toString()}`)
-
   }
 
 

@@ -3,19 +3,29 @@
 /**
  * Browse Jobs view (client side).
  *
- * This file owns the small amount of UI state (search text, selected filters,
- * sort option, current page) and assembles the reusable pieces:
+ * The search bar (JobSearchBar) and the filters both live in the URL, so
+ * page.tsx can read those params on the server and forward them to the jobs API:
  *
- *   JobSearchBar  -> the search input + button
+ *   ?search=react        -> req.query.search
+ *   ?jobType=Full-time   -> req.query.jobType
+ *   ?category=Design     -> req.query.category
+ *   ?isRemote=true       -> req.query.isRemote ("true" | "false")
+ *
+ * Every change builds a new query string with URLSearchParams and calls
+ * router.push(), so the server page fetches the filtered jobs again.
+ * Only one filter group is active at a time: picking a job type clears the
+ * category and work mode, and so on.
+ *
+ * The reusable pieces:
+ *
+ *   JobSearchBar  -> the search input + button (handles its own URL params)
  *   JobFilters    -> the filter sidebar
  *   JobCard       -> one job listing
  *   Pagination    -> page switcher
- *
- * NOTE: the search and filter handlers do not change the URL yet. That is
- * marked with TODO below, so the query params can be implemented in one place.
  */
 
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { BriefcaseBusiness } from "lucide-react"
 
 import {
@@ -48,27 +58,48 @@ type FilterGroupId = "jobType" | "category" | "workMode"
 /** Each group is single-select, so it holds one value or nothing. */
 type SelectedFilters = Record<FilterGroupId, string | null>
 
-const NO_FILTERS: SelectedFilters = {
-  jobType: null,
-  category: null,
-  workMode: null,
-}
-
 /** Merge the shared option lists with values that only exist in the data. */
 function uniqueValues(shared: string[], fromJobs: string[]) {
   return Array.from(new Set([...shared, ...fromJobs.filter(Boolean)]))
 }
 
-export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filters, setFilters] = useState<SelectedFilters>(NO_FILTERS)
+/**
+ * The API receives `isRemote=true|false`, but the sidebar shows the friendlier
+ * "remote" / "onsite" values. This converts one into the other.
+ */
+function toWorkMode(isRemote: string | null): string | null {
+  if (isRemote === "true") return "remote"
+  if (isRemote === "false") return "onsite"
+  return null
+}
+
+export function BrowseJobsView({
+  jobs,
+  allJobs,
+}: {
+  jobs: Job[]
+  allJobs: Job[]
+}) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value)
   const [page, setPage] = useState(1)
 
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  /** One selected value per group, read straight from the URL. */
+  const filters: SelectedFilters = {
+    jobType: searchParams.get("jobType"),
+    category: searchParams.get("category"),
+    workMode: toWorkMode(searchParams.get("isRemote")),
+  }
 
-    // TODO: put `searchTerm` into the URL search params here.
+  /** Push the given params to the URL, which makes the server fetch again. */
+  function pushParams(nextParams: URLSearchParams) {
+    const queryString = nextParams.toString()
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname
+
+    router.push(nextUrl, { scroll: false })
   }
 
   function handleFilterToggle(groupId: FilterGroupId, value: string) {
@@ -76,20 +107,37 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
     // selected (the radio itself cannot be unchecked).
     const nextValue = filters[groupId] === value ? null : value
 
-    setFilters((previous) => ({ ...previous, [groupId]: nextValue }))
+    // Only one filter group is active at a time. Keep the search term, but
+    // drop job type / category / work mode so choosing one of them does not
+    // narrow the results using the others.
+    const nextParams = new URLSearchParams()
+    const search = searchParams.get("search")
 
-    // TODO: put `nextValue` into the URL search params here.
+    if (search) nextParams.set("search", search)
+
+    if (nextValue !== null) {
+      // Work mode is a boolean on the API side, so map it to `isRemote`.
+      if (groupId === "workMode") {
+        nextParams.set("isRemote", String(nextValue === "remote"))
+      } else {
+        nextParams.set(groupId, nextValue)
+      }
+    }
+
+    setPage(1)
+    pushParams(nextParams)
   }
 
-  // Build the filter sidebar from the job fields + the shared option lists.
+  // Build the filter sidebar from the unfiltered jobs + the shared option
+  // lists, so the counts stay stable while a filter is selected.
   const jobTypeValues = uniqueValues(
     JOB_TYPES,
-    jobs.map((job) => job.jobType)
+    allJobs.map((job) => job.jobType)
   )
 
   const categoryValues = uniqueValues(
     JOB_CATEGORIES,
-    jobs.map((job) => job.category)
+    allJobs.map((job) => job.category)
   )
 
   const filterGroups: FilterGroup[] = [
@@ -99,7 +147,7 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
       options: jobTypeValues.map((value) => ({
         value,
         label: value,
-        count: jobs.filter((job) => job.jobType === value).length,
+        count: allJobs.filter((job) => job.jobType === value).length,
         checked: filters.jobType === value,
       })),
     },
@@ -109,7 +157,7 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
       options: categoryValues.map((value) => ({
         value,
         label: value,
-        count: jobs.filter((job) => job.category === value).length,
+        count: allJobs.filter((job) => job.category === value).length,
         checked: filters.category === value,
       })),
     },
@@ -119,7 +167,7 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
       options: WORK_MODES.map(({ value, label }) => ({
         value,
         label,
-        count: jobs.filter((job) =>
+        count: allJobs.filter((job) =>
           value === "remote" ? job.isRemote : !job.isRemote
         ).length,
         checked: filters.workMode === value,
