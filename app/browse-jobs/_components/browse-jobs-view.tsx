@@ -45,12 +45,13 @@ const SORT_OPTIONS = [
 ]
 
 type FilterGroupId = "jobType" | "category" | "workMode"
-type SelectedFilters = Record<FilterGroupId, string[]>
+/** Each group is single-select, so it holds one value or nothing. */
+type SelectedFilters = Record<FilterGroupId, string | null>
 
 const NO_FILTERS: SelectedFilters = {
-  jobType: [],
-  category: [],
-  workMode: [],
+  jobType: null,
+  category: null,
+  workMode: null,
 }
 
 /** Merge the shared option lists with values that only exist in the data. */
@@ -71,15 +72,13 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
   }
 
   function handleFilterToggle(groupId: FilterGroupId, value: string) {
-    const selected = filters[groupId]
+    // Single-select: pick the new value, or clear it when it is already
+    // selected (the radio itself cannot be unchecked).
+    const nextValue = filters[groupId] === value ? null : value
 
-    const nextSelected = selected.includes(value)
-      ? selected.filter((item) => item !== value)
-      : [...selected, value]
+    setFilters((previous) => ({ ...previous, [groupId]: nextValue }))
 
-    setFilters((previous) => ({ ...previous, [groupId]: nextSelected }))
-
-    // TODO: put `nextSelected` into the URL search params here.
+    // TODO: put `nextValue` into the URL search params here.
   }
 
   // Build the filter sidebar from the job fields + the shared option lists.
@@ -101,7 +100,7 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
         value,
         label: value,
         count: jobs.filter((job) => job.jobType === value).length,
-        checked: filters.jobType.includes(value),
+        checked: filters.jobType === value,
       })),
     },
     {
@@ -111,7 +110,7 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
         value,
         label: value,
         count: jobs.filter((job) => job.category === value).length,
-        checked: filters.category.includes(value),
+        checked: filters.category === value,
       })),
     },
     {
@@ -123,7 +122,7 @@ export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
         count: jobs.filter((job) =>
           value === "remote" ? job.isRemote : !job.isRemote
         ).length,
-        checked: filters.workMode.includes(value),
+        checked: filters.workMode === value,
       })),
     },
   ]

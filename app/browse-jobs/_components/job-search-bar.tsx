@@ -16,6 +16,7 @@ type JobSearchBarProps = {
 }
 
 export function JobSearchBar({ value, onChange, onSubmit }: JobSearchBarProps) {
+  
   return (
     <form
       role="search"
