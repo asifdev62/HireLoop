@@ -16,8 +16,7 @@ import { useEffect, useState } from "react"
 import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react"
 
 import { toast } from "@/components/ui/toast"
-import { getJobs } from "@/lib/api/jobs"
-import { deleteJob } from "@/lib/actions/jobs"
+import { deleteJob, getJobs } from "@/lib/api/jobs"
 
 import type { Job } from "../_data/jobData"
 import { JobDetailsModal } from "./_components/job-details-modal"
