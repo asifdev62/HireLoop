@@ -13,7 +13,7 @@ import type { FormEvent } from "react"
 
 export function JobSearchBar(){
   const router = useRouter();
-  
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) =>{
     event.preventDefault()
 
@@ -57,14 +57,3 @@ export function JobSearchBar(){
   )
 }
 
-
-
-
-
-// type JobSearchBarProps = {
-//   value: string
-//   onChange: (value: string) => void
-//   onSubmit: (event: FormEvent<HTMLFormElement>) => void
-// }
-
-// export function JobSearchBar({ value, onChange, onSubmit }: JobSearchBarProps) {
