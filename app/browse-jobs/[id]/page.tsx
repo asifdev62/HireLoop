@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 
 import Navbar from "@/components/Navbar"
-import { getJobs } from "@/lib/api/jobs"
+import { getJobById } from "@/lib/api/jobs"
 import {
   formatSalary,
   getDepartment,
@@ -41,11 +41,11 @@ const BENEFITS = [
 export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   const { id } = await params
 
-  // The API has no single-job route, so get all jobs and find this one.
-  const data = await getJobs("")
-  const jobs: Job[] = Array.isArray(data) ? data : data.jobs || []
+  // Get this job from the API by its id.
+  const data = await getJobById(id).catch(() => null)
 
-  const job = jobs.find((item) => item._id === id || item.id === id)
+  // A wrong id returns an empty response, so show the 404 page.
+  const job: Job | null = data && data.title ? data : null
 
   if (!job) notFound()
 

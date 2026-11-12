@@ -34,7 +34,7 @@ import { JobSearchBar } from "./job-search-bar"
 import { Pagination } from "./pagination"
 
 /** How many jobs are shown on one page. */
-const PAGE_SIZE = 5
+const PAGE_SIZE = 4
 
 /** Work mode is stored in the URL as the boolean `isRemote`. */
 const WORK_MODES = [

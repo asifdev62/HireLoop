@@ -4,6 +4,7 @@ import { getJobs } from "@/lib/api/jobs"
 import type { Job } from "@/app/dashboard/recruiter/_data/jobData"
 
 import { BrowseJobsView } from "./_components/browse-jobs-view"
+import Navbar from "@/components/Navbar"
 
 type BrowseJobsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
@@ -63,8 +64,11 @@ export default async function BrowseJobsPage({
 
   return (
     <main className="relative isolate min-h-screen bg-black text-white">
-      
+      <Navbar />
+
+      <div className="mt-6">
       <BrowseJobsView jobs={jobs} allJobs={allJobs} />
+    </div>
     </main>
   )
 }

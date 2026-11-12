@@ -109,6 +109,6 @@ export function JobCard({ job }: { job: Job }) {
         </span>
       </div>
     </article>
-    </Link>
+  </Link>
   )
 }
