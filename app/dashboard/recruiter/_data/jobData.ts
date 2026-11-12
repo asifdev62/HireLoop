@@ -10,7 +10,7 @@
 
 /** A job exactly as it comes back from the API. */
 export type Job = {
-  _id?: string
+  _id: string
   id?: string
   title: string
   companyName: string

@@ -23,6 +23,7 @@ import {
 } from "@/app/dashboard/recruiter/_data/jobData"
 
 import { CompanyOverviewCard } from "../_components/company-overview-card"
+import JobApplyButton from "./JobApplyButton"
 
 type JobDetailsPageProps = {
   params: Promise<{ id: string }>
@@ -135,12 +136,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
               </button>
 
               {/* TODO: open the application form once it exists. */}
-              <button
-                type="button"
-                className="inline-flex h-10 items-center justify-center rounded-xl bg-white px-6 text-sm font-semibold text-[#09090B] transition-colors hover:bg-zinc-200 focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
-              >
-                Apply Now
-              </button>
+              <JobApplyButton jobId={job._id}/>
             </div>
           </div>
         </header>

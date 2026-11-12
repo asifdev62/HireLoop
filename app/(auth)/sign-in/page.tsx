@@ -5,9 +5,13 @@ import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function SignInPage() {
+
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") ?? "/"
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -41,7 +45,7 @@ export default function SignInPage() {
 
       toast.success("Login successful!")
 
-      router.push("/")
+      router.push(redirectTo)
     } catch {
       toast.error("Something went wrong. Please try again.")
     }
