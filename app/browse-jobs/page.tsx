@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar"
+
 import { getJobs } from "@/lib/api/jobs"
 
 import type { Job } from "@/app/dashboard/recruiter/_data/jobData"
@@ -63,7 +63,7 @@ export default async function BrowseJobsPage({
 
   return (
     <main className="relative isolate min-h-screen bg-black text-white">
-      <Navbar />
+      
       <BrowseJobsView jobs={jobs} allJobs={allJobs} />
     </main>
   )

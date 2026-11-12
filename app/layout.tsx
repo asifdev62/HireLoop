@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import { Toaster as SonnerToaster } from "sonner"
 import { Toaster as ShadcnToaster } from "@/components/ui/toast"
-
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({

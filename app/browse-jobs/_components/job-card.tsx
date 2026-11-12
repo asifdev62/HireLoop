@@ -23,6 +23,7 @@ import {
   getStatus,
   type Job,
 } from "@/app/dashboard/recruiter/_data/jobData"
+import Link from "next/link"
 
 function Chip({
   icon: Icon,
@@ -52,6 +53,7 @@ export function JobCard({ job }: { job: Job }) {
   const LocationIcon = job.isRemote ? Globe : MapPin
 
   return (
+    <Link href={`/browse-jobs/${job._id}`}>
     <article className="rounded-xl border border-white/[0.07] bg-[#101014] p-4 transition-colors hover:border-white/15 hover:bg-[#141418] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
@@ -107,5 +109,6 @@ export function JobCard({ job }: { job: Job }) {
         </span>
       </div>
     </article>
+    </Link>
   )
 }
