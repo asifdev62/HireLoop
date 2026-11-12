@@ -3,25 +3,19 @@
 /**
  * Browse Jobs view (client side).
  *
- * The search bar (JobSearchBar) and the filters both live in the URL, so
- * page.tsx can read those params on the server and forward them to the jobs API:
+ * The search term and the filters are stored in the URL, so page.tsx can read
+ * them on the server and pass them to the jobs API:
  *
  *   ?search=react        -> req.query.search
  *   ?jobType=Full-time   -> req.query.jobType
  *   ?category=Design     -> req.query.category
  *   ?isRemote=true       -> req.query.isRemote ("true" | "false")
  *
- * Every change builds a new query string with URLSearchParams and calls
- * router.push(), so the server page fetches the filtered jobs again.
+ * Every change builds a new query string and calls router.push(), which makes
+ * the server page fetch the filtered jobs again.
+ *
  * Only one filter group is active at a time: picking a job type clears the
  * category and work mode, and so on.
- *
- * The reusable pieces:
- *
- *   JobSearchBar  -> the search input + button (handles its own URL params)
- *   JobFilters    -> the filter sidebar
- *   JobCard       -> one job listing
- *   Pagination    -> page switcher
  */
 
 import { useState } from "react"
@@ -40,9 +34,9 @@ import { JobSearchBar } from "./job-search-bar"
 import { Pagination } from "./pagination"
 
 /** How many jobs are shown on one page. */
-const PAGE_SIZE = 4
+const PAGE_SIZE = 5
 
-/** Work mode is stored as a boolean (`isRemote`), so the options are local. */
+/** Work mode is stored in the URL as the boolean `isRemote`. */
 const WORK_MODES = [
   { value: "remote", label: "Remote" },
   { value: "onsite", label: "On-site" },
@@ -55,22 +49,48 @@ const SORT_OPTIONS = [
 ]
 
 type FilterGroupId = "jobType" | "category" | "workMode"
+
 /** Each group is single-select, so it holds one value or nothing. */
 type SelectedFilters = Record<FilterGroupId, string | null>
 
-/** Merge the shared option lists with values that only exist in the data. */
-function uniqueValues(shared: string[], fromJobs: string[]) {
-  return Array.from(new Set([...shared, ...fromJobs.filter(Boolean)]))
+/**
+ * Combine the shared option lists with values that only exist in the jobs,
+ * without adding the same option twice.
+ */
+function uniqueValues(sharedValues: string[], jobValues: string[]) {
+  const values = [...sharedValues]
+
+  for (const value of jobValues) {
+    if (value && !values.includes(value)) {
+      values.push(value)
+    }
+  }
+
+  return values
 }
 
-/**
- * The API receives `isRemote=true|false`, but the sidebar shows the friendlier
- * "remote" / "onsite" values. This converts one into the other.
- */
-function toWorkMode(isRemote: string | null): string | null {
+/** The URL stores work mode as true/false, but the sidebar shows remote/onsite. */
+function toWorkMode(isRemote: string | null) {
   if (isRemote === "true") return "remote"
   if (isRemote === "false") return "onsite"
   return null
+}
+
+/** Count the jobs that have the given value in the given field. */
+function countJobs(
+  jobs: Job[],
+  field: "jobType" | "category" | "isRemote",
+  value: string | boolean
+) {
+  let count = 0
+
+  for (const job of jobs) {
+    if (job[field] === value) {
+      count += 1
+    }
+  }
+
+  return count
 }
 
 export function BrowseJobsView({
@@ -84,52 +104,45 @@ export function BrowseJobsView({
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  // The sort choice is kept in local state (it is not sent to the API).
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value)
   const [page, setPage] = useState(1)
 
-  /** One selected value per group, read straight from the URL. */
+  // One selected value per group, read straight from the URL.
   const filters: SelectedFilters = {
     jobType: searchParams.get("jobType"),
     category: searchParams.get("category"),
     workMode: toWorkMode(searchParams.get("isRemote")),
   }
 
-  /** Push the given params to the URL, which makes the server fetch again. */
-  function pushParams(nextParams: URLSearchParams) {
-    const queryString = nextParams.toString()
-    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname
-
-    router.push(nextUrl, { scroll: false })
-  }
-
   function handleFilterToggle(groupId: FilterGroupId, value: string) {
-    // Single-select: pick the new value, or clear it when it is already
-    // selected (the radio itself cannot be unchecked).
-    const nextValue = filters[groupId] === value ? null : value
+    const params = new URLSearchParams()
 
-    // Only one filter group is active at a time. Keep the search term, but
-    // drop job type / category / work mode so choosing one of them does not
-    // narrow the results using the others.
-    const nextParams = new URLSearchParams()
+    // Keep the search term when a filter changes.
     const search = searchParams.get("search")
+    if (search) params.set("search", search)
 
-    if (search) nextParams.set("search", search)
+    // Filters are single-select, so clicking the selected option clears it.
+    const isSelected = filters[groupId] === value
 
-    if (nextValue !== null) {
+    if (!isSelected) {
       // Work mode is a boolean on the API side, so map it to `isRemote`.
       if (groupId === "workMode") {
-        nextParams.set("isRemote", String(nextValue === "remote"))
+        params.set("isRemote", value === "remote" ? "true" : "false")
       } else {
-        nextParams.set(groupId, nextValue)
+        params.set(groupId, value)
       }
     }
 
+    // A new filter means the old page number no longer makes sense.
     setPage(1)
-    pushParams(nextParams)
+
+    const query = params.toString()
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
   }
 
-  // Build the filter sidebar from the unfiltered jobs + the shared option
-  // lists, so the counts stay stable while a filter is selected.
+  // Build the sidebar from the unfiltered jobs so the counts stay stable
+  // while a filter is selected.
   const jobTypeValues = uniqueValues(
     JOB_TYPES,
     allJobs.map((job) => job.jobType)
@@ -147,7 +160,7 @@ export function BrowseJobsView({
       options: jobTypeValues.map((value) => ({
         value,
         label: value,
-        count: allJobs.filter((job) => job.jobType === value).length,
+        count: countJobs(allJobs, "jobType", value),
         checked: filters.jobType === value,
       })),
     },
@@ -157,7 +170,7 @@ export function BrowseJobsView({
       options: categoryValues.map((value) => ({
         value,
         label: value,
-        count: allJobs.filter((job) => job.category === value).length,
+        count: countJobs(allJobs, "category", value),
         checked: filters.category === value,
       })),
     },
@@ -167,19 +180,17 @@ export function BrowseJobsView({
       options: WORK_MODES.map(({ value, label }) => ({
         value,
         label,
-        count: allJobs.filter((job) =>
-          value === "remote" ? job.isRemote : !job.isRemote
-        ).length,
+        count: countJobs(allJobs, "isRemote", value === "remote"),
         checked: filters.workMode === value,
       })),
     },
   ]
 
-  // Keep the list simple: slice the fetched jobs into pages.
+  // Show only the jobs for the current page.
   const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
-  const firstJobIndex = (currentPage - 1) * PAGE_SIZE
-  const visibleJobs = jobs.slice(firstJobIndex, firstJobIndex + PAGE_SIZE)
+  const startIndex = (currentPage - 1) * PAGE_SIZE
+  const visibleJobs = jobs.slice(startIndex, startIndex + PAGE_SIZE)
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 pt-6 pb-16 sm:px-6 lg:px-8">
@@ -256,229 +267,3 @@ export function BrowseJobsView({
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client"
-
-// /**
-//  * Browse Jobs view (client side).
-//  *
-//  * This file owns the small amount of UI state (search text, selected filters,
-//  * sort option, current page) and assembles the reusable pieces:
-//  *
-//  *   JobSearchBar  -> the search input + button
-//  *   JobFilters    -> the filter sidebar
-//  *   JobCard       -> one job listing
-//  *   Pagination    -> page switcher
-//  *
-//  * NOTE: the search and filter handlers do not change the URL yet. That is
-//  * marked with TODO below, so the query params can be implemented in one place.
-//  */
-
-// import { useState, type FormEvent } from "react"
-// import { BriefcaseBusiness } from "lucide-react"
-
-// import {
-//   JOB_CATEGORIES,
-//   JOB_TYPES,
-//   type Job,
-// } from "@/app/dashboard/recruiter/_data/jobData"
-
-// import { JobCard } from "./job-card"
-// import { JobFilters, type FilterGroup } from "./job-filters"
-// import { JobSearchBar } from "./job-search-bar"
-// import { Pagination } from "./pagination"
-
-// /** How many jobs are shown on one page. */
-// const PAGE_SIZE = 4
-
-// /** Work mode is stored as a boolean (`isRemote`), so the options are local. */
-// const WORK_MODES = [
-//   { value: "remote", label: "Remote" },
-//   { value: "onsite", label: "On-site" },
-// ]
-
-// const SORT_OPTIONS = [
-//   { value: "recent", label: "Most Recent" },
-//   { value: "salary-high", label: "Salary: High to Low" },
-//   { value: "salary-low", label: "Salary: Low to High" },
-// ]
-
-// type FilterGroupId = "jobType" | "category" | "workMode"
-// /** Each group is single-select, so it holds one value or nothing. */
-// type SelectedFilters = Record<FilterGroupId, string | null>
-
-// const NO_FILTERS: SelectedFilters = {
-//   jobType: null,
-//   category: null,
-//   workMode: null,
-// }
-
-// /** Merge the shared option lists with values that only exist in the data. */
-// function uniqueValues(shared: string[], fromJobs: string[]) {
-//   return Array.from(new Set([...shared, ...fromJobs.filter(Boolean)]))
-// }
-
-// export function BrowseJobsView({ jobs }: { jobs: Job[] }) {
-//   const [searchTerm, setSearchTerm] = useState("")
-//   const [filters, setFilters] = useState<SelectedFilters>(NO_FILTERS)
-//   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value)
-//   const [page, setPage] = useState(1)
-
-//   function handleSearch(event: FormEvent<HTMLFormElement>) {
-//     event.preventDefault()
-
-//     // TODO: put `searchTerm` into the URL search params here.
-//   }
-
-//   function handleFilterToggle(groupId: FilterGroupId, value: string) {
-//     // Single-select: pick the new value, or clear it when it is already
-//     // selected (the radio itself cannot be unchecked).
-//     const nextValue = filters[groupId] === value ? null : value
-
-//     setFilters((previous) => ({ ...previous, [groupId]: nextValue }))
-
-//     // TODO: put `nextValue` into the URL search params here.
-//   }
-
-//   // Build the filter sidebar from the job fields + the shared option lists.
-//   const jobTypeValues = uniqueValues(
-//     JOB_TYPES,
-//     jobs.map((job) => job.jobType)
-//   )
-
-//   const categoryValues = uniqueValues(
-//     JOB_CATEGORIES,
-//     jobs.map((job) => job.category)
-//   )
-
-//   const filterGroups: FilterGroup[] = [
-//     {
-//       id: "jobType",
-//       title: "Job Type",
-//       options: jobTypeValues.map((value) => ({
-//         value,
-//         label: value,
-//         count: jobs.filter((job) => job.jobType === value).length,
-//         checked: filters.jobType === value,
-//       })),
-//     },
-//     {
-//       id: "category",
-//       title: "Category",
-//       options: categoryValues.map((value) => ({
-//         value,
-//         label: value,
-//         count: jobs.filter((job) => job.category === value).length,
-//         checked: filters.category === value,
-//       })),
-//     },
-//     {
-//       id: "workMode",
-//       title: "Work Mode",
-//       options: WORK_MODES.map(({ value, label }) => ({
-//         value,
-//         label,
-//         count: jobs.filter((job) =>
-//           value === "remote" ? job.isRemote : !job.isRemote
-//         ).length,
-//         checked: filters.workMode === value,
-//       })),
-//     },
-//   ]
-
-//   // Keep the list simple: slice the fetched jobs into pages.
-//   const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE))
-//   const currentPage = Math.min(page, totalPages)
-//   const firstJobIndex = (currentPage - 1) * PAGE_SIZE
-//   const visibleJobs = jobs.slice(firstJobIndex, firstJobIndex + PAGE_SIZE)
-
-//   return (
-//     <div className="mx-auto w-full max-w-[1200px] px-4 pt-6 pb-16 sm:px-6 lg:px-8">
-//       <h1 className="sr-only">Browse Jobs</h1>
-
-//       <JobSearchBar
-//         value={searchTerm}
-//         onChange={setSearchTerm}
-//         onSubmit={handleSearch}
-//       />
-
-//       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-//         <JobFilters
-//           groups={filterGroups}
-//           onToggle={(groupId, value) =>
-//             handleFilterToggle(groupId as FilterGroupId, value)
-//           }
-//         />
-
-//         <section aria-label="Job results">
-//           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-//             <h2 className="text-sm font-medium text-zinc-300">
-//               Found{" "}
-//               <span className="font-semibold text-white">
-//                 {jobs.length.toLocaleString()}
-//               </span>{" "}
-//               Professional {jobs.length === 1 ? "Job" : "Jobs"}
-//             </h2>
-
-//             <label className="flex items-center gap-2 text-xs text-zinc-500">
-//               Sort by:
-//               <select
-//                 value={sortBy}
-//                 onChange={(event) => setSortBy(event.target.value)}
-//                 className="rounded-md border border-white/10 bg-[#141418] px-2 py-1.5 text-xs text-zinc-200 focus:border-[#5C53FE]/60 focus:outline-none"
-//               >
-//                 {SORT_OPTIONS.map((option) => (
-//                   <option key={option.value} value={option.value}>
-//                     {option.label}
-//                   </option>
-//                 ))}
-//               </select>
-//             </label>
-//           </div>
-
-//           {visibleJobs.length === 0 ? (
-//             <div className="mt-4 rounded-xl border border-white/[0.07] bg-[#101014] p-10 text-center">
-//               <BriefcaseBusiness
-//                 className="mx-auto size-8 text-zinc-600"
-//                 aria-hidden="true"
-//               />
-
-//               <h3 className="mt-3 text-sm font-medium text-white">
-//                 No jobs found
-//               </h3>
-
-//               <p className="mt-1 text-xs text-zinc-500">
-//                 Try a different keyword or remove some filters.
-//               </p>
-//             </div>
-//           ) : (
-//             <ul className="mt-4 space-y-3">
-//               {visibleJobs.map((job) => (
-//                 <li key={job._id || job.id || job.title}>
-//                   <JobCard job={job} />
-//                 </li>
-//               ))}
-//             </ul>
-//           )}
-
-//           <Pagination
-//             currentPage={currentPage}
-//             totalPages={totalPages}
-//             onPageChange={setPage}
-//           />
-//         </section>
-//       </div>
-//     </div>
-//   )
-// }
