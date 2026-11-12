@@ -3,25 +3,45 @@
 import { useRouter } from "next/navigation"
 
 import { authClient } from "@/lib/auth-client"
+import { applyToAJob } from "@/lib/actions/applications"
 
 type JobApplyButtonProps = {
   jobId: string
+  jobTitle: string
+  companyName: string
 }
 
-const JobApplyButton = ({jobId}: JobApplyButtonProps) => {
+const JobApplyButton = ({jobId, jobTitle, companyName}: JobApplyButtonProps) => {
   const router = useRouter()
 
   const { data: session } = authClient.useSession()
   const user = session?.user
 
-  const handleApplyNow = () => {
+  const handleApplyNow = async () => {
   
     if (!user) {
       router.push(`/sign-in?redirectTo=/browse-jobs/${jobId}`)
       return
     }
+    else if(user.role === "seeker"){
+      //TODO: only send jobId and userid or email address for the application
+      const application = {
+        jobId: jobId,
+        userId: user.id,
+        user: user.email,
+        jobTitle: jobTitle,
+        companyNmae: companyName
+      }
+
+      const result = await applyToAJob(application);
+      if(result.insertedId){
+        console.log("Application submited successfully")
+        router.push("/browse-jobs")
+      }
+
+    }
     else{
-      console.log("save the application to the database")
+      console.log("user is not a job seeker")
     }
 
     // TODO: open the application form once it exists.

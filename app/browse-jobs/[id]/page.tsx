@@ -136,7 +136,11 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
               </button>
 
               {/* TODO: open the application form once it exists. */}
-              <JobApplyButton jobId={job._id}/>
+              <JobApplyButton
+                jobId={job._id}
+                jobTitle={job.title}
+                companyName={job.companyName}
+              />
             </div>
           </div>
         </header>
