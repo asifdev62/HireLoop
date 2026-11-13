@@ -140,6 +140,9 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                 jobId={job._id}
                 jobTitle={job.title}
                 companyName={job.companyName}
+                jobType={job.jobType}
+                location={job.location}
+                isRemote={job.isRemote}
               />
             </div>
           </div>

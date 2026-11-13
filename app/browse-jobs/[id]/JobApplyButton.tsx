@@ -2,49 +2,60 @@
 
 import { useRouter } from "next/navigation"
 
-import { authClient } from "@/lib/auth-client"
 import { applyToAJob } from "@/lib/actions/applications"
+import { authClient } from "@/lib/auth-client"
 
 type JobApplyButtonProps = {
   jobId: string
   jobTitle: string
   companyName: string
+  jobType: string
+  location: string
+  isRemote: boolean
 }
 
-const JobApplyButton = ({jobId, jobTitle, companyName}: JobApplyButtonProps) => {
+const JobApplyButton = ({
+  jobId,
+  jobTitle,
+  companyName,
+  jobType,
+  location,
+  isRemote,
+}: JobApplyButtonProps) => {
   const router = useRouter()
 
   const { data: session } = authClient.useSession()
   const user = session?.user
 
   const handleApplyNow = async () => {
-  
     if (!user) {
       router.push(`/sign-in?redirectTo=/browse-jobs/${jobId}`)
       return
     }
-    else if(user.role === "seeker"){
-      //TODO: only send jobId and userid or email address for the application
-      const application = {
-        jobId: jobId,
-        userId: user.id,
-        user: user.email,
-        jobTitle: jobTitle,
-        companyNmae: companyName
-      }
 
-      const result = await applyToAJob(application);
-      if(result.insertedId){
-        console.log("Application submited successfully")
-        router.push("/browse-jobs")
-      }
-
-    }
-    else{
+    if (user.role !== "seeker") {
       console.log("user is not a job seeker")
+      return
     }
 
-    // TODO: open the application form once it exists.
+    // Everything "My Applications" shows is saved with the application, so the
+    // row still reads correctly if the job post is edited later.
+    const result = await applyToAJob({
+      applicantId: user.id,
+      applicantName: user.name,
+      applicantEmail: user.email,
+      jobId,
+      jobTitle,
+      companyName,
+      jobType,
+      location,
+      isRemote,
+    })
+
+    if (result.insertedId) {
+      console.log("Application submitted successfully")
+      router.push("/browse-jobs")
+    }
   }
 
   return (
