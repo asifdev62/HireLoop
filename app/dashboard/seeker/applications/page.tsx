@@ -1,22 +1,16 @@
 "use client"
 
-/**
- * My Applications page.
- *
- * Right now it renders `DUMMY_APPLICATIONS`. When the applications API is
- * ready, swap that line for `getMyApplications(user.id)` from
- * "@/lib/actions/applications" — the rest of the page stays the same.
- */
-
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { Download, FileText } from "lucide-react"
 
 import { ApplicationStats } from "./_components/application-stats"
 import { ApplicationsPagination } from "./_components/applications-pagination"
 import { ApplicationsTable } from "./_components/applications-table"
 import { MobileApplicationCard } from "./_components/mobile-application-card"
-import { DUMMY_APPLICATIONS, type ApplicationRow } from "./_data/applications"
+
+import { getMyApplications, JobApplication } from "@/lib/actions/applications"
+import { authClient } from "@/lib/auth-client"
 
 const PAGE_SIZE = 5
 
@@ -27,46 +21,76 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "archived", label: "Archived" },
 ]
 
+
 export default function MyApplicationsPage() {
+  const { data: session, isPending } = authClient.useSession()
+
+  const [applications, setApplications] = useState<JobApplication[]>([])
   const [tab, setTab] = useState<Tab>("active")
   const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
 
-  // TODO: replace with the signed-in seeker's applications from the API.
-  const applications: ApplicationRow[] = DUMMY_APPLICATIONS
+  // Get applications from backend.
+  useEffect(() => {
+    if (isPending) return
 
-  const activeApplications = useMemo(
-    () => applications.filter((application) => !application.archived),
-    [applications]
+    if (!session?.user?.id) {
+      setLoading(false)
+      return
+    }
+
+    const loadApplications = async () => {
+      try {
+        setLoading(true)
+
+        const data = await getMyApplications(session.user.id)
+        setApplications(data)
+      } catch (error) {
+        console.log("Failed to load applications:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadApplications()
+  }, [session?.user?.id, isPending])
+
+
+  // Active applications.
+  const activeApplications = applications.filter(
+    (application) => !application.archived
   )
 
-  const tabApplications = useMemo(
-    () =>
-      applications.filter(
-        (application) => application.archived === (tab === "archived")
-      ),
-    [applications, tab]
+  // Applications based on selected tab.
+  const tabApplications = applications.filter((application) =>
+    tab === "active"
+      ? !application.archived
+      : application.archived
   )
 
-  const totalPages = Math.max(1, Math.ceil(tabApplications.length / PAGE_SIZE))
-  const currentPage = Math.min(page, totalPages)
+  
+  const totalPages = Math.ceil(tabApplications.length / PAGE_SIZE)
+  const currentPage = Math.min(page, Math.max(1, totalPages))
 
   const visibleApplications = tabApplications.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   )
+  
 
-  function changeTab(nextTab: Tab) {
-    setTab(nextTab)
+  // Change tab.
+  const changeTab = (newTab: Tab) => {
+    setTab(newTab)
     setPage(1)
   }
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
       <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 pb-8 sm:px-6 lg:px-8 lg:pt-6">
-        {/* Title, filters, export */}
+
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          <div>
+            <h1 className="text-2xl font-semibold sm:text-3xl">
               My Applications
             </h1>
 
@@ -75,23 +99,17 @@ export default function MyApplicationsPage() {
             </p>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <div
-              role="tablist"
-              aria-label="Filter applications"
-              className="inline-flex items-center rounded-lg border border-white/[0.07] bg-[#101014] p-1"
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center rounded-lg border border-white/[0.07] bg-[#101014] p-1">
               {TABS.map(({ id, label }) => (
                 <button
                   key={id}
                   type="button"
-                  role="tab"
-                  aria-selected={tab === id}
                   onClick={() => changeTab(id)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none ${
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                     tab === id
                       ? "bg-white/10 text-white"
-                      : "text-zinc-500 hover:text-zinc-300"
+                      : "text-zinc-500"
                   }`}
                 >
                   {label}
@@ -99,32 +117,31 @@ export default function MyApplicationsPage() {
               ))}
             </div>
 
-            {/* TODO: export the applications as a PDF once the data is loaded. */}
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs font-medium whitespace-nowrap text-zinc-200 transition-colors hover:border-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 px-3 text-xs"
             >
-              <Download className="size-3.5" aria-hidden="true" />
+              <Download className="size-3.5" />
               Export PDF
             </button>
           </div>
         </header>
 
-        {/* Totals */}
         <div className="mt-6">
           <ApplicationStats applications={activeApplications} />
         </div>
 
-        {/* Application list */}
         <div className="mt-6 overflow-hidden rounded-xl border border-white/[0.07] bg-[#101014]">
-          {visibleApplications.length === 0 ? (
-            <div className="p-10 text-center">
-              <FileText
-                className="mx-auto size-8 text-zinc-600"
-                aria-hidden="true"
-              />
 
-              <h2 className="mt-3 text-sm font-medium text-white">
+          {loading ? (
+            <p className="p-10 text-center text-sm text-zinc-400">
+              Loading applications...
+            </p>
+          ) : visibleApplications.length === 0 ? (
+            <div className="p-10 text-center">
+              <FileText className="mx-auto size-8 text-zinc-600" />
+
+              <h2 className="mt-3 text-sm font-medium">
                 {tab === "archived"
                   ? "No archived applications"
                   : "No applications yet"}
@@ -139,7 +156,7 @@ export default function MyApplicationsPage() {
               {tab === "active" && (
                 <Link
                   href="/browse-jobs"
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#5C53FE] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#4F46E5]"
+                  className="mt-4 inline-flex rounded-lg bg-[#5C53FE] px-4 py-2.5 text-sm"
                 >
                   Browse Jobs
                 </Link>
@@ -147,14 +164,12 @@ export default function MyApplicationsPage() {
             </div>
           ) : (
             <>
-              {/* Table — md and up */}
               <ApplicationsTable applications={visibleApplications} />
 
-              {/* Cards — below md */}
               <ul className="divide-y divide-white/[0.06] md:hidden">
                 {visibleApplications.map((application) => (
                   <MobileApplicationCard
-                    key={application._id ?? application.jobId}
+                    key={application._id}
                     application={application}
                   />
                 ))}

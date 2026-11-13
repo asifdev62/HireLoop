@@ -87,19 +87,17 @@ export async function applyToAJob(
   return response.json()
 }
 
+
+
 /** Every application of one seeker, newest first. */
-export async function getMyApplications(
-  applicantId: string
-): Promise<JobApplication[]> {
+export async function getMyApplications(userId: string) {
   const response = await fetch(
-    `${BASE_URL}/applications?applicantId=${encodeURIComponent(applicantId)}`
+    `${BASE_URL}/applications?userId=${userId}`
   )
 
   if (!response.ok) {
-    throw new Error("Failed to load applications")
+    throw new Error("Failed to fetch applications")
   }
 
-  const data = await response.json()
-
-  return Array.isArray(data) ? data : (data?.applications ?? [])
+  return response.json()
 }
