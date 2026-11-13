@@ -1,14 +1,23 @@
 "use client"
-import { toast } from "sonner"
-import React, { useState } from "react"
+import { toast } from "@/components/ui/toast"
+import React, { Suspense, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { useRouter, useSearchParams } from "next/navigation"
 
+// `useSearchParams` suspends during prerendering, so the form lives behind a
+// Suspense boundary to keep `next build` happy.
 export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#070709]" />}>
+      <SignInForm />
+    </Suspense>
+  )
+}
 
+function SignInForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectTo") ?? "/"
 
@@ -39,15 +48,18 @@ export default function SignInPage() {
       })
 
       if (error) {
-        toast.error(error.message)
+        toast.add({ title: error.message, type: "error" })
         return
       }
 
-      toast.success("Login successful!")
+      toast.add({ title: "Login successful!", type: "success" })
 
       router.push(redirectTo)
     } catch {
-      toast.error("Something went wrong. Please try again.")
+      toast.add({
+        title: "Something went wrong. Please try again.",
+        type: "error",
+      })
     }
   }
 
@@ -58,13 +70,19 @@ export default function SignInPage() {
       })
 
       if (error) {
-        toast.error(error.message)
+        toast.add({ title: error.message, type: "error" })
         return
       }
 
-      toast.success("Redirecting to Google... Please wait!")
+      toast.add({
+        title: "Redirecting to Google... Please wait!",
+        type: "success",
+      })
     } catch {
-      toast.error("Google sign-in failed. Please try again.")
+      toast.add({
+        title: "Google sign-in failed. Please try again.",
+        type: "error",
+      })
     }
   }
 

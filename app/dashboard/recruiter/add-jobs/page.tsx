@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createJob } from "@/lib/actions/jobs"
+import { createJob } from "@/lib/api/jobs"
 import {
   EMPTY_JOB_FORM,
   JOB_CATEGORIES,

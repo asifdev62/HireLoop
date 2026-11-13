@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import { Bell, LogOut, Mail, MenuIcon, User as UserIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toast"
 
 import { authClient } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
@@ -210,15 +210,27 @@ export default function Navbar() {
       const { error } = await authClient.signOut()
 
       if (error) {
-        toast.error(error.message ?? "Could not sign out")
+        toast.add({
+          title: error.message ?? "Could not sign out",
+          type: "error",
+        })
         return
       }
+
+      toast.add({
+        title: "Logged out successfully!",
+        description: "You have been signed out of your account.",
+        type: "success",
+      })
 
       setOpen(false)
       router.push("/")
       router.refresh()
     } catch {
-      toast.error("Something went wrong. Please try again.")
+      toast.add({
+        title: "Something went wrong. Please try again.",
+        type: "error",
+      })
     } finally {
       setIsSigningOut(false)
     }

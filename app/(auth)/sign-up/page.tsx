@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/toast"
 import { useRouter } from "next/navigation"
 
 type Role = "seeker" | "recruiter" | "admin"
@@ -63,12 +63,15 @@ export default function SignUpPage() {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match!")
+      toast.add({ title: "Passwords do not match!", type: "error" })
       return
     }
 
     if (!formData.agreeToTerms) {
-      toast.error("Please agree to the Terms and Conditions.")
+      toast.add({
+        title: "Please agree to the Terms and Conditions.",
+        type: "error",
+      })
       return
     }
 
@@ -81,15 +84,21 @@ export default function SignUpPage() {
         role: formData.role,
       })
       if (error) {
-        toast.error(error.message)
+        toast.add({ title: error.message, type: "error" })
         return
       }
 
-      toast.success("Your account has been created successfully!")
+      toast.add({
+        title: "Your account has been created successfully!",
+        type: "success",
+      })
 
       router.push("/")
     } catch {
-      toast.error("Something went wrong. Please try again.")
+      toast.add({
+        title: "Something went wrong. Please try again.",
+        type: "error",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -102,13 +111,19 @@ export default function SignUpPage() {
       })
 
       if (error) {
-        toast.error(error.message)
+        toast.add({ title: error.message, type: "error" })
         return
       }
 
-      toast.success("Redirecting to Google... Please wait!")
+      toast.add({
+        title: "Redirecting to Google... Please wait!",
+        type: "success",
+      })
     } catch {
-      toast.error("Google sign-up failed. Please try again.")
+      toast.add({
+        title: "Google sign-up failed. Please try again.",
+        type: "error",
+      })
     }
   }
 
