@@ -21,7 +21,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "archived", label: "Archived" },
 ]
 
-
 export default function MyApplicationsPage() {
   const { data: session, isPending } = authClient.useSession()
 
@@ -34,17 +33,13 @@ export default function MyApplicationsPage() {
   useEffect(() => {
     if (isPending) return
 
-    if (!session?.user?.id) {
-      setLoading(false)
-      return
-    }
+    const userId = session?.user?.id
+    if (!userId) return
 
     const loadApplications = async () => {
       try {
-        setLoading(true)
-
-        const data = await getMyApplications(session.user.id)
-        setApplications(data)
+        const data = await getMyApplications(userId)
+        setApplications(Array.isArray(data) ? data : [])
       } catch (error) {
         console.log("Failed to load applications:", error)
       } finally {
@@ -55,6 +50,8 @@ export default function MyApplicationsPage() {
     loadApplications()
   }, [session?.user?.id, isPending])
 
+  // Signed-out users are not loading anything.
+  const isLoading = isPending || (loading && Boolean(session?.user?.id))
 
   // Active applications.
   const activeApplications = applications.filter(
@@ -62,13 +59,11 @@ export default function MyApplicationsPage() {
   )
 
   // Applications based on selected tab.
-  const tabApplications = applications.filter((application) =>
+  const tabApplications =
     tab === "active"
-      ? !application.archived
-      : application.archived
-  )
+      ? activeApplications
+      : applications.filter((application) => application.archived)
 
-  
   const totalPages = Math.ceil(tabApplications.length / PAGE_SIZE)
   const currentPage = Math.min(page, Math.max(1, totalPages))
 
@@ -76,7 +71,6 @@ export default function MyApplicationsPage() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   )
-  
 
   // Change tab.
   const changeTab = (newTab: Tab) => {
@@ -87,7 +81,6 @@ export default function MyApplicationsPage() {
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
       <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 pb-8 sm:px-6 lg:px-8 lg:pt-6">
-
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold sm:text-3xl">
@@ -107,9 +100,7 @@ export default function MyApplicationsPage() {
                   type="button"
                   onClick={() => changeTab(id)}
                   className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                    tab === id
-                      ? "bg-white/10 text-white"
-                      : "text-zinc-500"
+                    tab === id ? "bg-white/10 text-white" : "text-zinc-500"
                   }`}
                 >
                   {label}
@@ -132,8 +123,7 @@ export default function MyApplicationsPage() {
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/[0.07] bg-[#101014]">
-
-          {loading ? (
+          {isLoading ? (
             <p className="p-10 text-center text-sm text-zinc-400">
               Loading applications...
             </p>
@@ -169,7 +159,7 @@ export default function MyApplicationsPage() {
               <ul className="divide-y divide-white/[0.06] md:hidden">
                 {visibleApplications.map((application) => (
                   <MobileApplicationCard
-                    key={application._id}
+                    key={application._id ?? application.jobId}
                     application={application}
                   />
                 ))}
