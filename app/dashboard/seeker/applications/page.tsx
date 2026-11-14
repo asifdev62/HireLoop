@@ -28,27 +28,50 @@ export default function MyApplicationsPage() {
   const [tab, setTab] = useState<Tab>("active")
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reloadToken, setReloadToken] = useState(0)
 
-  // Get applications from backend.
+  // Get applications from the API.
   useEffect(() => {
     if (isPending) return
 
     const userId = session?.user?.id
     if (!userId) return
 
+    // Ignore the response if the user changes while it is still loading.
+    let active = true
+
     const loadApplications = async () => {
+      setLoading(true)
+      setError(null)
+
       try {
         const data = await getMyApplications(userId)
-        setApplications(Array.isArray(data) ? data : [])
-      } catch (error) {
-        console.log("Failed to load applications:", error)
+        if (active) setApplications(data)
+      } catch (loadError) {
+        console.error("Failed to load applications:", loadError)
+
+        // An API failure is not the same as "no applications yet", so it gets
+        // its own message instead of the empty state.
+        if (active) {
+          setApplications([])
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Could not load your applications."
+          )
+        }
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
 
     loadApplications()
-  }, [session?.user?.id, isPending])
+
+    return () => {
+      active = false
+    }
+  }, [session?.user?.id, isPending, reloadToken])
 
   // Signed-out users are not loading anything.
   const isLoading = isPending || (loading && Boolean(session?.user?.id))
@@ -127,6 +150,24 @@ export default function MyApplicationsPage() {
             <p className="p-10 text-center text-sm text-zinc-400">
               Loading applications...
             </p>
+          ) : error ? (
+            <div className="p-10 text-center">
+              <FileText className="mx-auto size-8 text-zinc-600" />
+
+              <h2 className="mt-3 text-sm font-medium">
+                Could not load applications
+              </h2>
+
+              <p className="mt-1 text-xs text-zinc-500">{error}</p>
+
+              <button
+                type="button"
+                onClick={() => setReloadToken((token) => token + 1)}
+                className="mt-4 inline-flex rounded-lg border border-white/10 px-4 py-2 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
+              >
+                Try again
+              </button>
+            </div>
           ) : visibleApplications.length === 0 ? (
             <div className="p-10 text-center">
               <FileText className="mx-auto size-8 text-zinc-600" />
