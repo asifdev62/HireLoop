@@ -9,13 +9,22 @@ import { ArrowLeft, CreditCard, Lock } from "lucide-react"
 import { toast } from "@/components/ui/toast"
 
 import { CheckoutButton } from "./_components/checkout-button"
-
-const PLAN_NAME = "Hireloop Pro Plan"
-const PLAN_DESCRIPTION = "Access to all features"
-const PRICE = "$20.00"
+import { authClient } from "@/lib/auth-client"
 
 function PaymentPageContent() {
   const searchParams = useSearchParams()
+  const { data: session } = authClient.useSession()
+  const user = session?.user
+
+  const isRecruiter = user?.role === "recruiter"
+  const planName = isRecruiter ? "Hireloop Recruiter Pro" : "Hireloop Pro Plan"
+  const planDescription = isRecruiter
+    ? "Unlimited job postings & candidate hiring tools"
+    : "Access to all features & unlimited applications"
+  const price = isRecruiter ? "$50.00" : "$20.00"
+  const backHref = isRecruiter
+    ? "/dashboard/recruiter/manage-jobs"
+    : "/dashboard/seeker"
 
   const canceled = searchParams.get("canceled")
 
@@ -43,7 +52,7 @@ function PaymentPageContent() {
         <header className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <Link
-              href="/dashboard/seeker"
+              href={backHref}
               aria-label="Back to dashboard"
               className="flex size-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-zinc-400 transition-all hover:border-white/15 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-[#0B6BFF]/60 focus-visible:outline-none"
             >
@@ -81,13 +90,13 @@ function PaymentPageContent() {
             <div className="mt-5 flex items-start justify-between gap-6">
               <div className="min-w-0">
                 <p className="text-sm font-semibold tracking-tight text-white">
-                  {PLAN_NAME}
+                  {planName}
                 </p>
-                <p className="mt-1 text-xs text-zinc-500">{PLAN_DESCRIPTION}</p>
+                <p className="mt-1 text-xs text-zinc-500">{planDescription}</p>
               </div>
 
               <p className="shrink-0 text-sm font-semibold text-white">
-                {PRICE}
+                {price}
               </p>
             </div>
 
@@ -96,7 +105,7 @@ function PaymentPageContent() {
             <div className="mt-5 flex items-center justify-between gap-6">
               <p className="text-sm font-semibold text-white">Total</p>
               <p className="text-base font-semibold tracking-tight text-white">
-                {PRICE}
+                {price}
               </p>
             </div>
           </section>
@@ -126,7 +135,7 @@ function PaymentPageContent() {
               </div>
             </div>
 
-            <CheckoutButton amount={PRICE} />
+            <CheckoutButton amount={price} />
 
             <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-zinc-500">
               <Lock className="size-3 text-zinc-600" aria-hidden="true" />

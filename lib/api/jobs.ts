@@ -43,6 +43,21 @@ export const deleteJob = async (jobId: string) => {
   return res.json()
 }
 
+//get my jobs count
+export const getMyJobsCount = async (recruiterId: string): Promise<number> => {
+  const res = await fetch(
+    `${BASE_URL}/jobs/count?recruiterId=${encodeURIComponent(recruiterId)}`,
+    { cache: "no-store" }
+  )
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch jobs count")
+  }
+
+  const data = await res.json()
+  return data.count ?? 0
+}
+
 //details job
 export const getJobById = async (jobId: string) => {
   const res = await fetch(`${BASE_URL}/jobs/${jobId}`)

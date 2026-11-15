@@ -31,7 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createJob } from "@/lib/api/jobs"
+import { createJob, getMyJobsCount } from "@/lib/api/jobs"
+import { getuserpremiumById } from "@/lib/api/users"
+import { authClient } from "@/lib/auth-client"
 import {
   EMPTY_JOB_FORM,
   JOB_CATEGORIES,
@@ -56,6 +58,8 @@ const sectionClass =
 
 export default function AddJobsPage() {
   const router = useRouter()
+  const { data: session } = authClient.useSession()
+  const user = session?.user
 
   // Extra fields that are not plain text inputs.
   const [isRemote, setIsRemote] = useState(false)
@@ -79,6 +83,11 @@ export default function AddJobsPage() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
+    if (!user) {
+      router.push("/sign-in?redirectTo=/dashboard/recruiter/add-jobs")
+      return
+    }
+
     // shadcn Select does not support the native `required` attribute.
     if (!formData.category) {
       toast.add({
@@ -98,17 +107,37 @@ export default function AddJobsPage() {
       return
     }
 
-    // Salaries are text in the form, but numbers for the API.
-    const jobData = {
-      ...formData,
-      jobType,
-      isRemote,
-      minSalary: Number(formData.minSalary),
-      maxSalary: Number(formData.maxSalary),
-    }
-
     try {
       setIsSubmitting(true)
+
+      // 1. Check if recruiter is premium
+      const premiumResult = await getuserpremiumById(user.id)
+
+      // 2. Check how many jobs this recruiter has already posted
+      const jobCount = await getMyJobsCount(user.id)
+
+      // 3. Free limit check: maximum 2 free job postings
+      if (!premiumResult?.premium && jobCount >= 2) {
+        toast.add({
+          title: "Job Posting Limit Reached",
+          description:
+            "Free accounts can post up to 2 jobs. Upgrade to Recruiter Pro for unlimited postings.",
+          type: "error",
+        })
+        router.push("/payment")
+        return
+      }
+
+      // Salaries are text in the form, but numbers for the API.
+      const jobData = {
+        ...formData,
+        recruiterId: user.id,
+        recruiterEmail: user.email,
+        jobType,
+        isRemote,
+        minSalary: Number(formData.minSalary),
+        maxSalary: Number(formData.maxSalary),
+      }
 
       const result = await createJob(jobData)
       console.log("createdJob", result)

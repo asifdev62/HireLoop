@@ -33,7 +33,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
   try {
     session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["line_items", "payment_intent"],
+      expand: ["line_items", "payment_intent", "subscription"],
     })
   } catch (error) {
     console.error("Failed to retrieve Stripe checkout session:", error)
@@ -66,12 +66,15 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
       ? (session.payment_intent as Stripe.PaymentIntent)
       : null
 
-  // Transaction ID specifically under payment_intent.id
+  // Transaction ID specifically under payment_intent.id (or subscription ID if recurring)
   const transactionId =
     paymentIntent?.id ??
     (typeof session.payment_intent === "string"
       ? session.payment_intent
       : null) ??
+    (typeof session.subscription === "string"
+      ? session.subscription
+      : (session.subscription as Stripe.Subscription | null)?.id) ??
     sessionId
 
   const customerEmail =
@@ -101,8 +104,18 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     hour12: true,
   }).format(new Date(timestamp))
 
+  const userRole = session.metadata?.role
+  const dashboardHref =
+    userRole === "recruiter"
+      ? "/dashboard/recruiter/manage-jobs"
+      : "/dashboard/seeker"
+  const secondaryHref =
+    userRole === "recruiter" ? "/dashboard/recruiter/add-jobs" : "/browse-jobs"
+  const secondaryText = userRole === "recruiter" ? "Post a Job" : "Browse Jobs"
+
   const planName =
-    session.line_items?.data?.[0]?.description || "Hireloop Pro Plan"
+    session.line_items?.data?.[0]?.description ||
+    (userRole === "recruiter" ? "Hireloop Recruiter Pro" : "Hireloop Pro Plan")
 
   const paymentMethodType =
     paymentIntent?.payment_method_types?.[0]?.toUpperCase() ?? "CARD"
@@ -301,7 +314,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           {/* Action buttons */}
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link
-              href="/dashboard/seeker"
+              href={dashboardHref}
               className="group inline-flex h-9.5 flex-1 items-center justify-center gap-1.5 rounded-lg bg-linear-to-b from-[#1B7BFF] to-[#0B5FE6] text-xs font-semibold text-white shadow-[0_6px_20px_rgba(11,107,255,0.25)] ring-1 ring-white/15 transition-all ring-inset hover:from-[#2A86FF] hover:to-[#0B6BFF] hover:shadow-[0_8px_24px_rgba(11,107,255,0.35)] focus-visible:ring-2 focus-visible:ring-[#4D9BFF]/70 focus-visible:outline-none"
             >
               <span>Go to Dashboard</span>
@@ -312,10 +325,10 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             </Link>
 
             <Link
-              href="/browse-jobs"
+              href={secondaryHref}
               className="inline-flex h-9.5 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-xs font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
             >
-              Browse Jobs
+              {secondaryText}
             </Link>
           </div>
 
