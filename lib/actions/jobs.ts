@@ -14,4 +14,3 @@ export type JobData = {
   jobType: string
   isRemote: boolean
 }
-

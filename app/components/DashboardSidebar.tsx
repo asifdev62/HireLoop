@@ -83,7 +83,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       icon: LayoutDashboard,
     },
     {
-       id: "recruiter-add-jobs",
+      id: "recruiter-add-jobs",
       name: "Add Jobs",
       url: "/dashboard/recruiter/add-jobs",
       icon: Plus,
@@ -100,7 +100,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       url: "/dashboard/recruiter/applicants",
       icon: Users,
     },
-   
+
     {
       id: "recruiter-settings",
       name: "Settings",
@@ -116,7 +116,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       url: "/dashboard/admin",
       icon: LayoutDashboard,
     },
-     {
+    {
       id: "admin-users",
       name: "Users",
       url: "/dashboard/admin/users",
@@ -129,7 +129,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       url: "/dashboard/admin/companies",
       icon: Building2,
     },
-     {
+    {
       id: "admin-jobs",
       name: "Jobs",
       url: "/dashboard/admin/jobs",
@@ -186,12 +186,3 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
-
-
-
-
-
-
-
-
-

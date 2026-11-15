@@ -33,7 +33,6 @@ export function JobSearchBar() {
     router.push(`/browse-jobs?${params.toString()}`)
   }
 
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -43,7 +42,7 @@ export function JobSearchBar() {
         <Search className="size-4 shrink-0 text-zinc-500" aria-hidden="true" />
 
         <input
-        name="searchField"
+          name="searchField"
           type="text"
           placeholder="Search by job title, keywords..."
           aria-label="Search by job title or keywords"
@@ -60,4 +59,3 @@ export function JobSearchBar() {
     </form>
   )
 }
-

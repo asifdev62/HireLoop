@@ -1,12 +1,8 @@
-
 "use client"
 
 import { useRouter } from "next/navigation"
 
-import {
-  applyToAJob,
-  getMyApplicationsCount,
-} from "@/lib/actions/applications"
+import { applyToAJob, getMyApplicationsCount } from "@/lib/actions/applications"
 
 import { authClient } from "@/lib/auth-client"
 import { toast } from "@/components/ui/toast"
@@ -48,7 +44,7 @@ const JobApplyButton = ({
       //is premium user
       const premiumResult = await getuserpremiumById(user.id)
 
-      console.log("premium Result:", premiumResult);
+      console.log("premium Result:", premiumResult)
       // Get total applications of this user
       const countResult = await getMyApplicationsCount(user.id)
 
@@ -77,7 +73,7 @@ const JobApplyButton = ({
 
         toast.add({
           title: "Application Submitted",
-          description: "Your application has been submitted successfully"
+          description: "Your application has been submitted successfully",
         })
       }
     } catch (error) {

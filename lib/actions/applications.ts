@@ -163,22 +163,17 @@ export async function getMyApplications(
   )
 }
 
-
-
-export async function getMyApplicationsCount(
-  userId: string
-): Promise<number> {
+export async function getMyApplicationsCount(userId: string): Promise<number> {
   const response = await fetch(
     `${BASE_URL}/applications/count?applicantId=${encodeURIComponent(userId)}`,
     { cache: "no-store" }
-  );
+  )
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch applications count (${response.status})`);
+    throw new Error(`Failed to fetch applications count (${response.status})`)
   }
 
-  const data = await response.json();
+  const data = await response.json()
 
-  return data.count;
+  return data.count
 }
-

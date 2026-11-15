@@ -1,4 +1,3 @@
-
 import { getJobs } from "@/lib/api/jobs"
 
 import type { Job } from "@/app/dashboard/recruiter/_data/jobData"
@@ -67,8 +66,8 @@ export default async function BrowseJobsPage({
       <Navbar />
 
       <div className="mt-6">
-      <BrowseJobsView jobs={jobs} allJobs={allJobs} />
-    </div>
+        <BrowseJobsView jobs={jobs} allJobs={allJobs} />
+      </div>
     </main>
   )
 }
