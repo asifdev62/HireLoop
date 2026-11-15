@@ -15,6 +15,7 @@ import Navbar from "@/components/Navbar"
 import { toast } from "@/components/ui/toast"
 
 import { PaymentSuccessDialog } from "./_components/payment-success-dialog"
+import { useSearchParams } from "next/navigation"
 
 type Currency = "BDT" | "USD"
 
@@ -45,18 +46,54 @@ const FIELD_LABEL_CLASS =
   "mb-1.5 block text-[10px] font-medium tracking-[0.1em] text-zinc-500 uppercase"
 
 export default function PaymentPage() {
+  const searchParams = useSearchParams()
+
+  const canceled = searchParams.get("canceled")
+
+  if (canceled === "true") {
+
+  toast.add({
+  title: "Order Canceled!",
+  description: "Continue to shop around and check out when you're ready.",
+})
+  }
+
   const [currency, setCurrency] = useState<Currency>("BDT")
   const [successOpen, setSuccessOpen] = useState(false)
 
   const price = PRICES[currency]
 
-  function handlePay(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+async function handlePay(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault()
 
-    // TODO: create a Stripe Checkout Session on the server and redirect.
-    // For now a successful payment is simulated, which opens the dialog.
-    setSuccessOpen(true)
+  try {
+    const response = await fetch("/api/checkout_sessions", {
+      method: "POST",
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+
+      toast.add({
+        title: "Payment failed",
+        description: data.error,
+        type: "error",
+      })
+
+      return
+    }
+
+    if (response.redirected) {
+      window.location.href = response.url
+    }
+  } catch (error) {
+    toast.add({
+      title: "Payment failed",
+      description: "Something went wrong. Please try again.",
+      type: "error",
+    })
   }
+}
 
   return (
     <main className="relative isolate min-h-screen bg-[#09090B] text-white">
