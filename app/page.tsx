@@ -1,4 +1,5 @@
 import Cta from "@/components/Cta"
+import FeaturedJobs from "@/components/FeaturedJobs"
 import Features from "@/components/Features"
 import Footer from "@/components/Footer"
 import Hero from "@/components/hero"
@@ -10,6 +11,7 @@ export default function Page() {
         <Navbar />
         <Hero />
         <Features />
+        <FeaturedJobs />
         <Cta />
         <Footer />
       </main>
