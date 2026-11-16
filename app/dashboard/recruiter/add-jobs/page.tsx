@@ -167,7 +167,7 @@ export default function AddJobsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1200px] px-4 py-6 text-white sm:px-6 lg:px-12 xl:px-20">
+    <div className="mx-auto w-full max-w-300 px-4 py-6 text-white sm:px-6 lg:px-12 xl:px-20">
       <div className="w-full space-y-7">
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

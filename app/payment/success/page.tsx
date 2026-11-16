@@ -129,14 +129,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/4 -left-48 -z-10 size-96 rounded-full bg-[#5C53FE]/[0.08] blur-[140px]"
+        className="pointer-events-none absolute top-1/4 -left-48 -z-10 size-96 rounded-full bg-[#5C53FE]/8 blur-[140px]"
       />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-48 bottom-1/4 -z-10 size-96 rounded-full bg-emerald-500/[0.07] blur-[140px]"
       />
 
-      <div className="mx-auto w-full max-w-[440px]">
+      <div className="mx-auto w-full max-w-110">
         {/* Header bar */}
         <header className="flex items-center justify-between gap-4">
           <Link
@@ -154,7 +154,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             />
           </Link>
 
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.08] px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/8 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
             <ShieldCheck className="size-3" aria-hidden="true" />
             Verified Payment
           </span>
@@ -163,7 +163,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         {/* Success Card */}
         <section
           id="success"
-          className="relative mt-4 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#101014]/90 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-linear-to-r before:from-transparent before:via-emerald-500/50 before:to-transparent sm:p-6"
+          className="relative mt-4 overflow-hidden rounded-2xl border border-white/8 bg-[#101014]/90 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-linear-to-r before:from-transparent before:via-emerald-500/50 before:to-transparent sm:p-6"
         >
           {/* Glowing Success Icon */}
           <div className="mx-auto flex size-11 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)] ring-2 ring-emerald-500/10">
@@ -190,7 +190,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           </div>
 
           {/* Highlighted Transaction ID Banner */}
-          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-3 sm:p-3.5">
+          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/3 p-3 sm:p-3.5">
             <div className="flex flex-wrap items-center justify-between gap-1.5">
               <div className="flex items-center gap-2">
                 <span className="flex size-6 items-center justify-center rounded-md bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25 ring-inset">
@@ -218,7 +218,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               />
             </div>
 
-            <div className="mt-2 flex items-center justify-between rounded-lg border border-white/[0.08] bg-[#0A0A0D] px-2.5 py-1.5">
+            <div className="mt-2 flex items-center justify-between rounded-lg border border-white/8 bg-[#0A0A0D] px-2.5 py-1.5">
               <code className="truncate font-mono text-[11px] text-zinc-200 select-all sm:text-xs">
                 {transactionId}
               </code>
@@ -226,12 +226,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           </div>
 
           {/* Order Details Breakdown */}
-          <div className="mt-3.5 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 sm:p-3.5">
+          <div className="mt-3.5 rounded-xl border border-white/8 bg-white/3 p-3 sm:p-3.5">
             <h2 className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
               Payment Summary
             </h2>
 
-            <dl className="mt-2 divide-y divide-white/[0.06] text-xs">
+            <dl className="mt-2 divide-y divide-white/6 text-xs">
               <div className="flex items-center justify-between py-1.5">
                 <dt className="text-zinc-400">Purchased Plan</dt>
                 <dd className="font-medium text-white">{planName}</dd>
@@ -271,7 +271,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                     <Mail className="size-3 text-zinc-500" aria-hidden="true" />
                     Billed To
                   </dt>
-                  <dd className="max-w-[180px] truncate font-medium text-zinc-300 sm:max-w-xs">
+                  <dd className="max-w-45 truncate font-medium text-zinc-300 sm:max-w-xs">
                     {customerName
                       ? `${customerName} (${customerEmail})`
                       : customerEmail}
@@ -298,7 +298,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                   Session ID
                 </dt>
                 <dd className="flex items-center gap-1.5">
-                  <span className="max-w-[120px] truncate font-mono text-[10px] text-zinc-400 sm:max-w-[150px]">
+                  <span className="max-w-30 truncate font-mono text-[10px] text-zinc-400 sm:max-w-37.5">
                     {sessionId}
                   </span>
                   <CopyButton
@@ -326,14 +326,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
             <Link
               href={secondaryHref}
-              className="inline-flex h-9.5 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-xs font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
+              className="inline-flex h-9.5 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/4 text-xs font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/8 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
             >
               {secondaryText}
             </Link>
           </div>
 
           {/* Footer actions: print & support link */}
-          <div className="mt-3.5 flex flex-col items-center justify-between gap-2 border-t border-white/[0.06] pt-3 text-[11px] text-zinc-400 sm:flex-row">
+          <div className="mt-3.5 flex flex-col items-center justify-between gap-2 border-t border-white/6 pt-3 text-[11px] text-zinc-400 sm:flex-row">
             <PrintReceiptButton />
 
             <p>

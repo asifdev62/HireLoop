@@ -26,9 +26,9 @@ export function ApplicationsTable({
 }: ApplicationsTableProps) {
   return (
     <div className="dark-scrollbar hidden overflow-x-auto lg:block">
-      <table className="w-full min-w-[820px] border-collapse text-left">
+      <table className="w-full min-w-205 border-collapse text-left">
         <thead>
-          <tr className="border-b border-white/[0.07] bg-white/[0.02]">
+          <tr className="border-b border-white/[0.07] bg-white/2">
             {COLUMNS.map((label) => (
               <th
                 key={label}
@@ -47,7 +47,7 @@ export function ApplicationsTable({
           {applications.map((application) => (
             <tr
               key={applicationKey(application)}
-              className="border-b border-white/[0.05] transition last:border-0 hover:bg-white/[0.02]"
+              className="border-b border-white/5 transition last:border-0 hover:bg-white/2"
             >
               <td className="px-4 py-3.5">
                 <div className="flex min-w-0 items-center gap-3">
@@ -72,7 +72,7 @@ export function ApplicationsTable({
               </td>
 
               <td className="px-4 py-3.5">
-                <p className="max-w-[220px] truncate text-xs font-medium text-zinc-200">
+                <p className="max-w-55 truncate text-xs font-medium text-zinc-200">
                   {application.jobTitle}
                 </p>
                 <p className="mt-0.5 truncate text-[11px] text-zinc-500">

@@ -146,7 +146,7 @@ export default function ManageJobsPage() {
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
-      <div className="mx-auto w-full max-w-[1400px] px-4 pt-4 pb-6 sm:px-6 lg:px-8 lg:pt-6 lg:pb-8">
+      <div className="mx-auto w-full max-w-350 px-4 pt-4 pb-6 sm:px-6 lg:px-8 lg:pt-6 lg:pb-8">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
@@ -221,7 +221,7 @@ export default function ManageJobsPage() {
               />
 
               {/* Cards — below xl */}
-              <ul className="divide-y divide-white/[0.06] xl:hidden">
+              <ul className="divide-y divide-white/6 xl:hidden">
                 {jobs.map((job) => (
                   <MobileJobCard
                     key={job._id || job.id}

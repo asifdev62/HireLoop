@@ -44,7 +44,7 @@ function Chip({
   children: React.ReactNode
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] whitespace-nowrap text-zinc-300">
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] whitespace-nowrap text-zinc-300">
       <Icon className="size-3 text-zinc-500" aria-hidden="true" />
       {children}
     </span>
@@ -116,7 +116,7 @@ export default function FeaturedJobs() {
       {/* Ambient glow behind the heading */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[380px] bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(92,83,254,0.12),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-95 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(92,83,254,0.12),transparent)]"
       />
 
       <div className="mx-auto max-w-6xl">
@@ -136,7 +136,7 @@ export default function FeaturedJobs() {
             <span className="size-1.5 rounded-full bg-[#7C65FF]" />
           </div>
 
-          <h2 className="mx-auto mt-4 max-w-2xl bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-3xl leading-tight font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl">
+          <h2 className="mx-auto mt-4 max-w-2xl bg-linear-to-b from-white via-white to-zinc-500 bg-clip-text text-3xl leading-tight font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl">
             The roles you&apos;d never
             <span className="block">find by searching</span>
           </h2>

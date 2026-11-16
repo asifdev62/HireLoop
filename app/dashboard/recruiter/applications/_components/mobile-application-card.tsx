@@ -48,7 +48,7 @@ export function MobileApplicationCard({
         </span>
       </div>
 
-      <div className="mt-3 rounded-lg border border-white/[0.07] bg-white/[0.02] px-3 py-2">
+      <div className="mt-3 rounded-lg border border-white/[0.07] bg-white/2 px-3 py-2">
         <p className="truncate text-xs font-medium text-zinc-200">
           {application.jobTitle}
         </p>

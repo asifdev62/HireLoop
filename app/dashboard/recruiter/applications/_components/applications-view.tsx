@@ -190,7 +190,7 @@ export function ApplicationsView() {
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
-      <div className="mx-auto w-full max-w-[1400px] px-4 pt-4 pb-6 sm:px-6 lg:px-8 lg:pt-6 lg:pb-8">
+      <div className="mx-auto w-full max-w-350 px-4 pt-4 pb-6 sm:px-6 lg:px-8 lg:pt-6 lg:pb-8">
         {/* Header */}
         <header>
           <p className="mb-2 flex items-center gap-2 text-xs text-zinc-500">
@@ -275,7 +275,7 @@ export function ApplicationsView() {
                 onStatusChange={handleStatusChange}
               />
 
-              <ul className="divide-y divide-white/[0.06] lg:hidden">
+              <ul className="divide-y divide-white/6 lg:hidden">
                 {visibleRows.map((application) => (
                   <MobileApplicationCard
                     key={applicationKey(application)}

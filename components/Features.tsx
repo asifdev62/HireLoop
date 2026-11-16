@@ -84,7 +84,7 @@ export default function Features() {
       {/* Ambient glow behind the heading */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[380px] bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(92,83,254,0.12),transparent)]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-95 bg-[radial-gradient(ellipse_60%_60%_at_50%_0%,rgba(92,83,254,0.12),transparent)]"
       />
 
       <div className="mx-auto max-w-6xl">
@@ -104,7 +104,7 @@ export default function Features() {
             <span className="size-1.5 rounded-full bg-[#7C65FF]" />
           </div>
 
-          <h2 className="mx-auto mt-4 max-w-2xl bg-gradient-to-b from-white via-white to-zinc-500 bg-clip-text text-3xl leading-tight font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl">
+          <h2 className="mx-auto mt-4 max-w-2xl bg-linear-to-b from-white via-white to-zinc-500 bg-clip-text text-3xl leading-tight font-bold tracking-tight text-transparent sm:text-4xl md:text-5xl">
             Everything you need
             <span className="block">to succeed</span>
           </h2>
@@ -122,9 +122,9 @@ export default function Features() {
             <motion.li
               key={title}
               variants={cardVariant}
-              className="group flex items-start gap-3.5 rounded-xl border border-white/[0.08] bg-[#0d0e13]/80 p-4 transition-colors duration-300 hover:border-white/20 hover:bg-[#121319]"
+              className="group flex items-start gap-3.5 rounded-xl border border-white/8 bg-[#0d0e13]/80 p-4 transition-colors duration-300 hover:border-white/20 hover:bg-[#121319]"
             >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-zinc-300 transition-colors group-hover:text-white">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/3 text-zinc-300 transition-colors group-hover:text-white">
                 <Icon className="size-5" strokeWidth={1.5} aria-hidden="true" />
               </span>
 

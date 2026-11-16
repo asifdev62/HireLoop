@@ -103,7 +103,7 @@ export default function MyApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
-      <div className="mx-auto w-full max-w-[1200px] px-4 pt-4 pb-8 sm:px-6 lg:px-8 lg:pt-6">
+      <div className="mx-auto w-full max-w-300 px-4 pt-4 pb-8 sm:px-6 lg:px-8 lg:pt-6">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold sm:text-3xl">
@@ -197,7 +197,7 @@ export default function MyApplicationsPage() {
             <>
               <ApplicationsTable applications={visibleApplications} />
 
-              <ul className="divide-y divide-white/[0.06] md:hidden">
+              <ul className="divide-y divide-white/6 md:hidden">
                 {visibleApplications.map((application) => (
                   <MobileApplicationCard
                     key={application._id ?? application.jobId}

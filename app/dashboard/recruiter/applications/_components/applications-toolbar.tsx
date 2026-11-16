@@ -54,7 +54,7 @@ export function ApplicationsToolbar({
           onValueChange={(value) => onJobFilterChange(value ?? "all")}
         >
           <SelectTrigger
-            className="w-full border-white/10 bg-[#1C1C20] text-white data-[placeholder]:text-zinc-500"
+            className="w-full border-white/10 bg-[#1C1C20] text-white data-placeholder:text-zinc-500"
             aria-label="Filter by job"
           >
             <SelectValue placeholder="All jobs" />

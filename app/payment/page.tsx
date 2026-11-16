@@ -54,7 +54,7 @@ function PaymentPageContent() {
             <Link
               href={backHref}
               aria-label="Back to dashboard"
-              className="flex size-9 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-zinc-400 transition-all hover:border-white/15 hover:bg-white/[0.06] hover:text-white focus-visible:ring-2 focus-visible:ring-[#0B6BFF]/60 focus-visible:outline-none"
+              className="flex size-9 items-center justify-center rounded-full border border-white/8 bg-white/3 text-zinc-400 transition-all hover:border-white/15 hover:bg-white/6 hover:text-white focus-visible:ring-2 focus-visible:ring-[#0B6BFF]/60 focus-visible:outline-none"
             >
               <ArrowLeft className="size-4" aria-hidden="true" />
             </Link>
@@ -75,7 +75,7 @@ function PaymentPageContent() {
             </Link>
           </div>
 
-          <span className="hidden items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-1.5 text-[10px] font-medium text-emerald-300/90 sm:inline-flex">
+          <span className="hidden items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/6 px-3 py-1.5 text-[10px] font-medium text-emerald-300/90 sm:inline-flex">
             <Lock className="size-3" aria-hidden="true" />
             Secure checkout
           </span>
@@ -100,7 +100,7 @@ function PaymentPageContent() {
               </p>
             </div>
 
-            <div className="mt-6 h-px bg-linear-to-r from-white/[0.12] via-white/[0.06] to-transparent" />
+            <div className="mt-6 h-px bg-linear-to-r from-white/12 via-white/6 to-transparent" />
 
             <div className="mt-5 flex items-center justify-between gap-6">
               <p className="text-sm font-semibold text-white">Total</p>
@@ -113,7 +113,7 @@ function PaymentPageContent() {
           <section aria-label="Payment method">
             <h2 className="text-xs font-semibold text-white">Payment method</h2>
 
-            <div className="mt-4 rounded-xl bg-linear-to-b from-white/[0.14] to-white/[0.03] p-px shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+            <div className="mt-4 rounded-xl bg-linear-to-b from-white/[0.14] to-white/3 p-px shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
               <div className="rounded-[11px] bg-[#101014]">
                 <div className="flex items-center gap-2.5 border-b border-white/[0.07] px-4 py-3">
                   <span className="flex size-7 items-center justify-center rounded-md bg-[#0B6BFF]/10 text-[#69A7FF] ring-1 ring-[#0B6BFF]/20 ring-inset">
@@ -122,7 +122,7 @@ function PaymentPageContent() {
 
                   <span className="text-xs font-semibold text-white">Card</span>
 
-                  <span className="ml-auto rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-0.5 text-[9px] font-medium tracking-wide text-zinc-500">
+                  <span className="ml-auto rounded-full border border-white/[0.07] bg-white/3 px-2 py-0.5 text-[9px] font-medium tracking-wide text-zinc-500">
                     Stripe
                   </span>
                 </div>
