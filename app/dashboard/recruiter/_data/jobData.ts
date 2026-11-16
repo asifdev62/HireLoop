@@ -25,6 +25,9 @@ export type Job = {
   qualifications?: string
   jobType: string
   isRemote: boolean
+  // Set on create from the signed-in user, so every job belongs to a recruiter.
+  recruiterId?: string
+  recruiterEmail?: string
   // These two are added by the backend later, after candidates start applying.
   applicants?: number
   status?: string

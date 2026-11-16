@@ -1,6 +1,7 @@
 export type JobData = {
   title: string
   companyName: string
+  companyId?: string
   category: string
   location: string
   deadline: string
@@ -11,6 +12,6 @@ export type JobData = {
   qualifications: string
   jobType: string
   isRemote: boolean
-  recruiterId?: string
+  recruiterId: string
   recruiterEmail?: string
 }
