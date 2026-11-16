@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useState } from "react"
@@ -12,12 +13,12 @@ import { MobileUserCard } from "./mobile-user-card"
 import { UsersStats } from "./users-stats"
 import { UsersTable } from "./users-table"
 import { UsersToolbar } from "./users-toolbar"
+import { updateuserRole } from "@/lib/actions/users"
 
 const PAGE_SIZE = 8
 
 type UsersManagementProps = {
   initialUsers: ManagedUser[]
-  /** Set when the server could not read the Better Auth user list. */
   loadError?: string | null
 }
 
@@ -27,18 +28,21 @@ export function UsersManagement({
 }: UsersManagementProps) {
   const router = useRouter()
 
-  // Role changes are local until the admin API write is added. Keeping the
-  // whole list in state makes the table, mobile cards, and stats agree.
-  const [users] = useState(initialUsers)
+  const [users, setUsers] = useState(initialUsers)
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState<UserRoleFilter>("all")
   const [page, setPage] = useState(1)
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null)
 
+  // Search and filter users
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase()
 
     return users
-      .filter((user) => roleFilter === "all" || user.role === roleFilter)
+      .filter(
+        (user) =>
+          roleFilter === "all" || user.role === roleFilter
+      )
       .filter((user) => {
         if (!term) return true
 
@@ -49,28 +53,86 @@ export function UsersManagement({
       })
       .sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
       )
   }, [users, roleFilter, search])
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+  // Pagination
+  const totalPages = Math.max(
+    1,
+    Math.ceil(rows.length / PAGE_SIZE)
+  )
+
   const currentPage = Math.min(page, totalPages)
+
   const visibleRows = rows.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   )
-  const hasFilters = search.trim().length > 0 || roleFilter !== "all"
 
+  const hasFilters =
+    search.trim().length > 0 || roleFilter !== "all"
+
+  // Search handler
   function handleSearchChange(value: string) {
     setSearch(value)
     setPage(1)
   }
 
+  // Role filter handler
   function handleRoleFilterChange(value: UserRoleFilter) {
     setRoleFilter(value)
     setPage(1)
   }
 
+  // Update user role
+  async function handleRoleChange(
+    id: string,
+    role: ManagedUser["role"]
+  ) {
+    if (updatingUserId) return
+
+    try {
+      setUpdatingUserId(id)
+
+      const res = await updateuserRole(id, role)
+
+      if (res.modifiedCount > 0) {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === id
+              ? { ...user, role }
+              : user
+          )
+        )
+
+        toast.add({
+          title: "Role updated",
+          description: "User role updated successfully.",
+          type: "success",
+        })
+      } else {
+        toast.add({
+          title: "No changes",
+          description: "User role was not changed.",
+          type: "info",
+        })
+      }
+    } catch (error) {
+      console.error("Role update failed:", error)
+
+      toast.add({
+        title: "Update failed",
+        description: "Could not update user role.",
+        type: "error",
+      })
+    } finally {
+      setUpdatingUserId(null)
+    }
+  }
+
+  // Suspend / Unsuspend user
   function handleToggleSuspend(user: ManagedUser) {
     toast.add({
       title: user.banned ? "Unsuspend user" : "Suspend user",
@@ -79,6 +141,7 @@ export function UsersManagement({
     })
   }
 
+  // Delete user
   function handleDelete(user: ManagedUser) {
     toast.add({
       title: "Delete user",
@@ -87,8 +150,8 @@ export function UsersManagement({
     })
   }
 
+  // Invite user
   function handleInviteUser() {
-    // TODO: open the invite dialog and call the admin create-user endpoint.
     toast.add({
       title: "Invite user",
       description: "The invite flow is not connected yet.",
@@ -96,6 +159,7 @@ export function UsersManagement({
     })
   }
 
+  // Reset filters
   function resetFilters() {
     setSearch("")
     setRoleFilter("all")
@@ -105,6 +169,8 @@ export function UsersManagement({
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
       <div className="mx-auto w-full max-w-350 px-4 pt-4 pb-6 sm:px-6 lg:px-8 lg:pt-6 lg:pb-8">
+
+        {/* Header */}
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="mb-2 flex items-center gap-2 text-xs text-zinc-500">
@@ -132,6 +198,7 @@ export function UsersManagement({
           </button>
         </header>
 
+        {/* Load Error */}
         {loadError ? (
           <div className="mt-6 rounded-xl border border-white/[0.07] bg-[#101014] p-10 text-center">
             <AlertCircle
@@ -139,9 +206,13 @@ export function UsersManagement({
               aria-hidden="true"
             />
 
-            <h2 className="mt-3 text-sm font-medium">Could not load users</h2>
+            <h2 className="mt-3 text-sm font-medium">
+              Could not load users
+            </h2>
 
-            <p className="mt-1 text-xs text-zinc-500">{loadError}</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              {loadError}
+            </p>
 
             <button
               type="button"
@@ -153,10 +224,12 @@ export function UsersManagement({
           </div>
         ) : (
           <>
+            {/* Stats */}
             <div className="mt-6">
               <UsersStats users={users} />
             </div>
 
+            {/* Toolbar */}
             <div className="mt-6">
               <UsersToolbar
                 search={search}
@@ -166,7 +239,9 @@ export function UsersManagement({
               />
             </div>
 
+            {/* Users Table */}
             <div className="mt-4 overflow-hidden rounded-xl border border-white/[0.07] bg-[#101014]">
+
               {visibleRows.length === 0 ? (
                 <div className="p-10 text-center">
                   <Users
@@ -175,7 +250,9 @@ export function UsersManagement({
                   />
 
                   <h2 className="mt-3 text-sm font-medium">
-                    {hasFilters ? "No matching users" : "No users yet"}
+                    {hasFilters
+                      ? "No matching users"
+                      : "No users yet"}
                   </h2>
 
                   <p className="mt-1 text-xs text-zinc-500">
@@ -196,12 +273,16 @@ export function UsersManagement({
                 </div>
               ) : (
                 <>
+                  {/* Desktop Table */}
                   <UsersTable
                     users={visibleRows}
                     onToggleSuspend={handleToggleSuspend}
                     onDelete={handleDelete}
+                    onRoleChange={handleRoleChange}
+                    updatingUserId={updatingUserId}
                   />
 
+                  {/* Mobile Cards */}
                   <ul className="divide-y divide-white/6 lg:hidden">
                     {visibleRows.map((user) => (
                       <MobileUserCard
@@ -213,6 +294,7 @@ export function UsersManagement({
                     ))}
                   </ul>
 
+                  {/* Pagination */}
                   <TablePagination
                     page={currentPage}
                     pageSize={PAGE_SIZE}
