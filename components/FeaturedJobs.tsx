@@ -112,7 +112,7 @@ export default function FeaturedJobs() {
   }, [])
 
   return (
-    <section className="relative isolate overflow-hidden bg-black px-4 pb-20 text-white sm:px-6 sm:pb-24 lg:px-8">
+    <section className="relative isolate overflow-hidden bg-black px-4 pt-12 pb-20 text-white sm:px-6 sm:pt-16 sm:pb-24 lg:px-8">
       {/* Ambient glow behind the heading */}
       <div
         aria-hidden="true"
@@ -177,7 +177,10 @@ export default function FeaturedJobs() {
                   variants={cardVariant}
                   className="h-full"
                 >
-                  <article className="flex h-full flex-col rounded-xl border border-white/[0.07] bg-[#0d0e13] p-5 transition-colors duration-300 hover:border-white/15 hover:bg-[#121319] sm:p-6">
+                  <Link
+                    href={`/browse-jobs/${jobId}`}
+                    className="group flex h-full flex-col rounded-xl border border-white/[0.07] bg-[#0d0e13] p-5 transition-colors duration-300 hover:border-white/15 hover:bg-[#121319] focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none sm:p-6"
+                  >
                     <h3 className="text-lg font-semibold text-white sm:text-xl">
                       {job.title}
                     </h3>
@@ -202,16 +205,11 @@ export default function FeaturedJobs() {
                       </Chip>
                     </div>
 
-                    <div className="mt-auto pt-6">
-                      <Link
-                        href={`/browse-jobs/${jobId}`}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
-                      >
-                        Apply Now
-                        <ArrowUpRight className="size-4" aria-hidden="true" />
-                      </Link>
-                    </div>
-                  </article>
+                    <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium text-zinc-300 transition-colors group-hover:text-white">
+                      Apply Now
+                      <ArrowUpRight className="size-4" aria-hidden="true" />
+                    </span>
+                  </Link>
                 </motion.li>
               )
             })}

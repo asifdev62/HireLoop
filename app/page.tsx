@@ -10,8 +10,8 @@ export default function Page() {
       <main className="relative isolate min-h-screen bg-black">
         <Navbar />
         <Hero />
-        <Features />
         <FeaturedJobs />
+        <Features />
         <Cta />
         <Footer />
       </main>

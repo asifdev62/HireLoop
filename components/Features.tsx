@@ -80,7 +80,7 @@ const cardVariant = {
 
 export default function Features() {
   return (
-    <section className="relative isolate overflow-hidden bg-black px-4 pt-10 pb-20 text-white sm:px-6 sm:pt-14 sm:pb-24 lg:px-8">
+    <section className="relative isolate overflow-hidden bg-[#151516] px-4 pt-10 pb-20 text-white sm:px-6 sm:pt-14 sm:pb-24 lg:px-8">
       {/* Ambient glow behind the heading */}
       <div
         aria-hidden="true"
