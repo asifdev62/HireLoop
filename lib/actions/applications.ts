@@ -108,6 +108,17 @@ export function normalizeApplication(
   }
 }
 
+/** Turns an unknown API payload into normalised applications. */
+function parseApplications(data: unknown): JobApplication[] {
+  if (!Array.isArray(data)) return []
+
+  return data.map((item: unknown) =>
+    normalizeApplication(
+      item && typeof item === "object" ? (item as Record<string, unknown>) : {}
+    )
+  )
+}
+
 /** Saves one application and returns the insert result. */
 export async function applyToAJob(
   data: NewApplication
@@ -154,13 +165,32 @@ export async function getMyApplications(
 
   const data = await response.json()
 
-  if (!Array.isArray(data)) return []
+  return parseApplications(data)
+}
 
-  return data.map((item: unknown) =>
-    normalizeApplication(
-      item && typeof item === "object" ? (item as Record<string, unknown>) : {}
-    )
+/**
+ * Every application sent to the given jobs (the recruiter view).
+ *
+ * The backend filters on `jobIds`; the page still checks the job ids again as a
+ * safety net, so an older API cannot leak another recruiter's applications.
+ */
+export async function getApplicationsByJobIds(
+  jobIds: string[]
+): Promise<JobApplication[]> {
+  if (jobIds.length === 0) return []
+
+  const response = await fetch(
+    `${BASE_URL}/applications?jobIds=${encodeURIComponent(jobIds.join(","))}`,
+    { cache: "no-store" }
   )
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch job applications (${response.status})`)
+  }
+
+  const data = await response.json()
+
+  return parseApplications(data)
 }
 
 export async function getMyApplicationsCount(userId: string): Promise<number> {

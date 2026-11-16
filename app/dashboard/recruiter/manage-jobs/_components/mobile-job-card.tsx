@@ -5,6 +5,8 @@
  * (the table is only used on very wide screens).
  */
 
+import Link from "next/link"
+
 import {
   formatSalary,
   getDepartment,
@@ -30,6 +32,7 @@ type MobileJobCardProps = {
 export function MobileJobCard({ job, onView, onDelete }: MobileJobCardProps) {
   const compensation = formatSalary(job)
   const status = getStatus(job)
+  const jobId = job._id || job.id
 
   return (
     <li className="p-4 sm:p-5">
@@ -78,7 +81,13 @@ export function MobileJobCard({ job, onView, onDelete }: MobileJobCardProps) {
             Applicants
           </p>
           <div className="mt-1.5">
-            <Applicants count={job.applicants ?? 0} />
+            <Link
+              href={`/dashboard/recruiter/applications?jobId=${jobId}`}
+              aria-label={`View applications for ${job.title}`}
+              className="inline-flex rounded-md transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
+            >
+              <Applicants count={job.applicants ?? 0} />
+            </Link>
           </div>
         </div>
 

@@ -1,11 +1,10 @@
 import Link from "next/link"
 
-import {
-  companyLogoClass,
-  formatAppliedAgo,
-  type ApplicationRow,
-} from "../_data/applications"
-import { ApplicationStatusBadge } from "./application-status-badge"
+import { avatarClass, formatAppliedAgo } from "@/lib/application-display"
+
+import { ApplicationStatusBadge } from "@/components/application-status-badge"
+
+import type { ApplicationRow } from "../_data/applications"
 
 export function MobileApplicationCard({
   application,
@@ -17,7 +16,7 @@ export function MobileApplicationCard({
       <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
-          className={`flex size-9 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold ${companyLogoClass(
+          className={`flex size-9 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold ${avatarClass(
             application.companyName
           )}`}
         >

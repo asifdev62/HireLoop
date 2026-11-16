@@ -7,7 +7,7 @@
 
 import Link from "next/link"
 import { useEffect } from "react"
-import { Globe, MapPin, Pencil, X } from "lucide-react"
+import { Globe, MapPin, Pencil, Users, X } from "lucide-react"
 
 import {
   formatLocation,
@@ -192,6 +192,16 @@ export function JobDetailsModal({
           >
             Close
           </button>
+
+          {jobId && (
+            <Link
+              href={`/dashboard/recruiter/applications?jobId=${jobId}`}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white"
+            >
+              <Users className="size-4" aria-hidden="true" />
+              View Applications
+            </Link>
+          )}
 
           {jobId && (
             <Link

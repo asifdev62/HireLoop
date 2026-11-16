@@ -96,8 +96,8 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
     },
     {
       id: "recruiter-applicants",
-      name: "Applicants",
-      url: "/dashboard/recruiter/applicants",
+      name: "Applications",
+      url: "/dashboard/recruiter/applications",
       icon: Users,
     },
 

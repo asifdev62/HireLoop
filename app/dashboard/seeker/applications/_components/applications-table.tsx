@@ -1,11 +1,10 @@
 import Link from "next/link"
 
-import {
-  companyLogoClass,
-  formatAppliedAgo,
-  type ApplicationRow,
-} from "../_data/applications"
-import { ApplicationStatusBadge } from "./application-status-badge"
+import { avatarClass, formatAppliedAgo } from "@/lib/application-display"
+
+import { ApplicationStatusBadge } from "@/components/application-status-badge"
+
+import type { ApplicationRow } from "../_data/applications"
 
 const COLUMNS = ["Job Title", "Company", "Applied", "Status", "Action"]
 
@@ -43,7 +42,7 @@ export function ApplicationsTable({
                 <div className="flex min-w-0 items-center gap-3">
                   <span
                     aria-hidden="true"
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold ${companyLogoClass(
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold ${avatarClass(
                       application.companyName
                     )}`}
                   >

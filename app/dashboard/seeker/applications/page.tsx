@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Download, FileText } from "lucide-react"
 
 import { ApplicationStats } from "./_components/application-stats"
-import { ApplicationsPagination } from "./_components/applications-pagination"
+import { ApplicationsPagination } from "@/components/applications-pagination"
 import { ApplicationsTable } from "./_components/applications-table"
 import { MobileApplicationCard } from "./_components/mobile-application-card"
 

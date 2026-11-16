@@ -7,7 +7,7 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { Eye, MoreVertical, Pencil, Trash2 } from "lucide-react"
+import { Eye, MoreVertical, Pencil, Trash2, Users } from "lucide-react"
 
 import { toast } from "@/components/ui/toast"
 import type { Job } from "../../_data/jobData"
@@ -25,6 +25,9 @@ export function JobActions({ job, onView, onDelete }: JobActionsProps) {
 
   const jobId = job._id || job.id
   const updateHref = jobId ? `/dashboard/recruiter/edit-jobs/${jobId}` : "#"
+  const applicationsHref = jobId
+    ? `/dashboard/recruiter/applications?jobId=${jobId}`
+    : "#"
 
   // Close the menu when the page scrolls or the window is resized.
   useEffect(() => {
@@ -53,7 +56,7 @@ export function JobActions({ job, onView, onDelete }: JobActionsProps) {
 
     if (!rect) return
 
-    const menuHeight = 158
+    const menuHeight = 206
     const openUp = rect.bottom + menuHeight > window.innerHeight
 
     setMenu({
@@ -127,6 +130,28 @@ export function JobActions({ job, onView, onDelete }: JobActionsProps) {
               <Eye className="size-4" aria-hidden="true" />
               View Details
             </button>
+
+            <Link
+              href={applicationsHref}
+              role="menuitem"
+              onClick={(event) => {
+                if (!jobId) {
+                  event.preventDefault()
+                  toast.add({
+                    title: "Job ID Not Found!",
+                    description: "This job ID could not be found.",
+                    type: "error",
+                  })
+                  return
+                }
+
+                setMenu(null)
+              }}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-zinc-300 transition hover:bg-white/5 hover:text-white"
+            >
+              <Users className="size-4" aria-hidden="true" />
+              View Applications
+            </Link>
 
             <Link
               href={updateHref}

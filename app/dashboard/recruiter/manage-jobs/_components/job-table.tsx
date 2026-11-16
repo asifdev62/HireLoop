@@ -5,6 +5,8 @@
  * The page itself handles loading jobs; this file only draws the rows.
  */
 
+import Link from "next/link"
+
 import {
   formatSalary,
   getDepartment,
@@ -65,10 +67,11 @@ export function JobTable({ jobs, onView, onDelete }: JobTableProps) {
         <tbody>
           {jobs.map((job) => {
             const compensation = formatSalary(job)
+            const jobId = job._id || job.id
 
             return (
               <tr
-                key={job._id || job.id}
+                key={jobId}
                 className="border-b border-white/[0.05] transition last:border-0 hover:bg-white/[0.02]"
               >
                 <td className="px-4 py-4">
@@ -103,7 +106,13 @@ export function JobTable({ jobs, onView, onDelete }: JobTableProps) {
                 </td>
 
                 <td className="hidden px-4 py-4 2xl:table-cell">
-                  <Applicants count={job.applicants ?? 0} />
+                  <Link
+                    href={`/dashboard/recruiter/applications?jobId=${jobId}`}
+                    aria-label={`View applications for ${job.title}`}
+                    className="inline-flex rounded-md transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
+                  >
+                    <Applicants count={job.applicants ?? 0} />
+                  </Link>
                 </td>
 
                 <td className="px-4 py-4">

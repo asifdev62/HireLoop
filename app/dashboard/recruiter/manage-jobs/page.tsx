@@ -17,6 +17,7 @@ import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react"
 
 import { toast } from "@/components/ui/toast"
 import { deleteJob, getJobs } from "@/lib/api/jobs"
+import { getApplicationsByJobIds } from "@/lib/actions/applications"
 import { authClient } from "@/lib/auth-client"
 
 import type { Job } from "../_data/jobData"
@@ -57,8 +58,38 @@ export default function ManageJobsPage() {
             : []
 
         // Only show jobs this recruiter created.
+        const myJobs = jobList.filter((job) => job.recruiterId === recruiterId)
+
+        // Show the real applicant count on each row (the job document does not
+        // keep this number up to date).
+        const jobIds = myJobs
+          .map((job) => job._id || job.id)
+          .filter((id): id is string => Boolean(id))
+
+        const applications = await getApplicationsByJobIds(jobIds).catch(
+          () => []
+        )
+
+        const applicantsByJob = new Map<string, number>()
+
+        for (const application of applications) {
+          applicantsByJob.set(
+            application.jobId,
+            (applicantsByJob.get(application.jobId) ?? 0) + 1
+          )
+        }
+
         if (active) {
-          setJobs(jobList.filter((job) => job.recruiterId === recruiterId))
+          setJobs(
+            myJobs.map((job) => {
+              const jobId = job._id || job.id
+
+              return {
+                ...job,
+                applicants: jobId ? (applicantsByJob.get(jobId) ?? 0) : 0,
+              }
+            })
+          )
         }
       } catch (loadError) {
         console.error("Failed to fetch jobs:", loadError)
