@@ -17,6 +17,7 @@ import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react"
 
 import { toast } from "@/components/ui/toast"
 import { deleteJob, getJobs } from "@/lib/api/jobs"
+import { authClient } from "@/lib/auth-client"
 
 import type { Job } from "../_data/jobData"
 import { JobDetailsModal } from "./_components/job-details-modal"
@@ -24,14 +25,28 @@ import { JobTable } from "./_components/job-table"
 import { MobileJobCard } from "./_components/mobile-job-card"
 
 export default function ManageJobsPage() {
+  const { data: session, isPending } = authClient.useSession()
+  const recruiterId = session?.user?.id
+
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
 
-  // Load every job once when the page opens.
+  // Load the signed-in recruiter's jobs once the session is ready.
   useEffect(() => {
+    if (isPending) return
+
+    // Signed-out users have no jobs to manage.
+    if (!recruiterId) return
+
+    // Ignore the response if the user changes while it is still loading.
+    let active = true
+
     async function loadJobs() {
+      setLoading(true)
+      setError(false)
+
       try {
         const data = await getJobs()
 
@@ -41,17 +56,27 @@ export default function ManageJobsPage() {
             ? data.jobs
             : []
 
-        setJobs(jobList)
+        // Only show jobs this recruiter created.
+        if (active) {
+          setJobs(jobList.filter((job) => job.recruiterId === recruiterId))
+        }
       } catch (loadError) {
         console.error("Failed to fetch jobs:", loadError)
-        setError(true)
+        if (active) setError(true)
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
 
     loadJobs()
-  }, [])
+
+    return () => {
+      active = false
+    }
+  }, [isPending, recruiterId])
+
+  // Signed-out users are not loading anything.
+  const isLoading = isPending || (loading && Boolean(recruiterId))
 
   // Delete a job and remove it from the list on screen.
   async function handleDelete(id: string): Promise<boolean> {
@@ -121,7 +146,7 @@ export default function ManageJobsPage() {
 
         {/* Job postings list */}
         <div className="mt-7 overflow-hidden rounded-xl border border-white/[0.07] bg-[#09090B]">
-          {loading ? (
+          {isLoading ? (
             <div className="p-12 text-center">
               <div className="mx-auto size-7 animate-spin rounded-full border-2 border-[#5C53FE] border-t-transparent" />
 
