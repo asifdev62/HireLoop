@@ -22,19 +22,22 @@ function getPageItems(current: number, totalPages: number) {
   return items
 }
 
-type ApplicationsPaginationProps = {
+type TablePaginationProps = {
   page: number
   pageSize: number
   total: number
+  /** Singular noun for the row count, e.g. "application" or "user". */
+  itemLabel?: string
   onPageChange: (page: number) => void
 }
 
-export function ApplicationsPagination({
+export function TablePagination({
   page,
   pageSize,
   total,
+  itemLabel = "application",
   onPageChange,
-}: ApplicationsPaginationProps) {
+}: TablePaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const first = total === 0 ? 0 : (page - 1) * pageSize + 1
   const last = Math.min(page * pageSize, total)
@@ -42,7 +45,8 @@ export function ApplicationsPagination({
   return (
     <div className="flex flex-col items-center justify-between gap-3 border-t border-white/[0.07] px-4 py-3 sm:flex-row">
       <p className="text-[11px] text-zinc-500">
-        Showing {first}-{last} of {total} application{total === 1 ? "" : "s"}
+        Showing {first}-{last} of {total} {itemLabel}
+        {total === 1 ? "" : "s"}
       </p>
 
       <div className="flex items-center gap-1">

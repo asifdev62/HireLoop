@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronRight, FileText, Users } from "lucide-react"
 
 import { toast } from "@/components/ui/toast"
-import { ApplicationsPagination } from "@/components/applications-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { authClient } from "@/lib/auth-client"
 import { getJobs } from "@/lib/api/jobs"
 import {
@@ -320,7 +320,7 @@ export function ApplicationsView() {
                 ))}
               </ul>
 
-              <ApplicationsPagination
+              <TablePagination
                 page={currentPage}
                 pageSize={PAGE_SIZE}
                 total={rows.length}

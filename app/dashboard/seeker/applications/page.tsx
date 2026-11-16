@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Download, FileText } from "lucide-react"
 
 import { ApplicationStats } from "./_components/application-stats"
-import { ApplicationsPagination } from "@/components/applications-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { ApplicationsTable } from "./_components/applications-table"
 import { MobileApplicationCard } from "./_components/mobile-application-card"
 
@@ -206,7 +206,7 @@ export default function MyApplicationsPage() {
                 ))}
               </ul>
 
-              <ApplicationsPagination
+              <TablePagination
                 page={currentPage}
                 pageSize={PAGE_SIZE}
                 total={tabApplications.length}
