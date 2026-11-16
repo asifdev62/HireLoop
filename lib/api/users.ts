@@ -1,4 +1,20 @@
+import { headers } from "next/headers";
+import { auth } from "../auth";
+import { authClient } from "../auth-client";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+
+export const getusers = async ()=>{
+const users = await auth.api.listUsers({
+    query: {
+        sortBy: "name", // The field to sort by.
+        sortDirection: "desc", // The direction to sort by.
+    },
+    // This endpoint requires session cookies.
+    headers: await headers(),
+});
+return users;
+}
 
 export const getuserpremiumById = async (userId: string) => {
   const response = await fetch(`${BASE_URL}/users/${userId}/premium`)
