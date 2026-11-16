@@ -11,15 +11,17 @@ import { ApplicationStatusSelect } from "./application-status-select"
 
 type MobileApplicationCardProps = {
   application: RecruiterApplication
+  savingId?: string | null
   onStatusChange: (
     application: RecruiterApplication,
     status: ApplicationStatus
-  ) => void
+  ) => void | Promise<void>
 }
 
 /** One candidate as a card, shown below the `lg` breakpoint. */
 export function MobileApplicationCard({
   application,
+  savingId,
   onStatusChange,
 }: MobileApplicationCardProps) {
   return (
@@ -60,6 +62,7 @@ export function MobileApplicationCard({
       <div className="mt-3 flex items-center justify-between gap-3">
         <ApplicationStatusSelect
           value={application.status}
+          disabled={savingId === applicationKey(application)}
           label={`Status for ${application.applicantName}`}
           onChange={(status) => onStatusChange(application, status)}
           className="w-36"

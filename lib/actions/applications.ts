@@ -145,6 +145,36 @@ export async function applyToAJob(
   return response.json()
 }
 
+/** What `PATCH /applications/:id` sends back (MongoDB `updateOne` result). */
+export type ApplicationUpdateResult = {
+  acknowledged?: boolean
+  matchedCount?: number
+  modifiedCount?: number
+  status?: ApplicationStatus
+}
+
+/** Saves a new pipeline status for one application. */
+export async function updateApplicationStatus(
+  applicationId: string,
+  status: ApplicationStatus
+): Promise<ApplicationUpdateResult> {
+  const response = await fetch(`${BASE_URL}/applications/${applicationId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to update the application status (${response.status})`
+    )
+  }
+
+  return response.json()
+}
+
 /**
  * Every application of one seeker, newest first.
  *

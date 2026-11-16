@@ -10,6 +10,7 @@ import { authClient } from "@/lib/auth-client"
 import { getJobs } from "@/lib/api/jobs"
 import {
   getApplicationsByJobIds,
+  updateApplicationStatus,
   type ApplicationStatus,
   type JobApplication,
 } from "@/lib/actions/applications"
@@ -44,6 +45,7 @@ export function ApplicationsView() {
   const [statusById, setStatusById] = useState<
     Record<string, ApplicationStatus>
   >({})
+  const [savingId, setSavingId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -172,20 +174,51 @@ export function ApplicationsView() {
     setPage(1)
   }
 
-  function handleStatusChange(
+  async function handleStatusChange(
     application: RecruiterApplication,
     status: ApplicationStatus
   ) {
-    setStatusById((previous) => ({
-      ...previous,
-      [applicationKey(application)]: status,
-    }))
+    const key = applicationKey(application)
+    const previousStatus = statusById[key] ?? application.status
 
-    toast.add({
-      title: "Status updated",
-      description: `${application.applicantName} is now "${status}". Database save is coming next.`,
-      type: "success",
-    })
+    if (previousStatus === status) return
+
+    if (!application._id) {
+      toast.add({
+        title: "Could not update status",
+        description: "This application has no id, so it cannot be saved.",
+        type: "error",
+      })
+      return
+    }
+
+    // Optimistic update: the dropdown changes immediately and rolls back if
+    // the API call fails.
+    setStatusById((previous) => ({ ...previous, [key]: status }))
+    setSavingId(key)
+
+    try {
+      await updateApplicationStatus(application._id, status)
+
+      toast.add({
+        title: "Status updated",
+        description: `${application.applicantName} is now "${status}".`,
+        type: "success",
+      })
+    } catch (error) {
+      console.error("Failed to update application status:", error)
+
+      setStatusById((previous) => ({ ...previous, [key]: previousStatus }))
+
+      toast.add({
+        title: "Could not update status",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      })
+    } finally {
+      setSavingId(null)
+    }
   }
 
   return (
@@ -272,6 +305,7 @@ export function ApplicationsView() {
             <>
               <ApplicationsTable
                 applications={visibleRows}
+                savingId={savingId}
                 onStatusChange={handleStatusChange}
               />
 
@@ -280,6 +314,7 @@ export function ApplicationsView() {
                   <MobileApplicationCard
                     key={applicationKey(application)}
                     application={application}
+                    savingId={savingId}
                     onStatusChange={handleStatusChange}
                   />
                 ))}

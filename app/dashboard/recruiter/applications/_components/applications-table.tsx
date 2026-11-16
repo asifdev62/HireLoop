@@ -13,15 +13,17 @@ const COLUMNS = ["Candidate", "Applied For", "Applied", "Status", "Details"]
 
 type ApplicationsTableProps = {
   applications: RecruiterApplication[]
+  savingId?: string | null
   onStatusChange: (
     application: RecruiterApplication,
     status: ApplicationStatus
-  ) => void
+  ) => void | Promise<void>
 }
 
 /** Desktop candidate table. The page handles loading; this file only draws rows. */
 export function ApplicationsTable({
   applications,
+  savingId,
   onStatusChange,
 }: ApplicationsTableProps) {
   return (
@@ -87,6 +89,7 @@ export function ApplicationsTable({
               <td className="px-4 py-3.5">
                 <ApplicationStatusSelect
                   value={application.status}
+                  disabled={savingId === applicationKey(application)}
                   label={`Status for ${application.applicantName}`}
                   onChange={(status) => onStatusChange(application, status)}
                 />

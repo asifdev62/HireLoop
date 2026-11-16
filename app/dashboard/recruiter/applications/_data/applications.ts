@@ -6,7 +6,7 @@ import type { JobApplication } from "@/lib/actions/applications"
  */
 export type RecruiterApplication = JobApplication
 
-/** Stable key for a row (also used for the local, not-yet-saved status). */
+/** Stable key for a row (also used for the local status override). */
 export function applicationKey(application: JobApplication) {
   return application._id ?? `${application.jobId}-${application.applicantEmail}`
 }
