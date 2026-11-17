@@ -6,7 +6,7 @@ import { applyToAJob, getMyApplicationsCount } from "@/lib/actions/applications"
 
 import { authClient } from "@/lib/auth-client"
 import { toast } from "@/components/ui/toast"
-import { getuserpremiumById } from "@/lib/api/users"
+import { getuserpremiumById } from "@/lib/api/users-client"
 
 type JobApplyButtonProps = {
   jobId: string

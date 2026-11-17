@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createJob, getMyJobsCount } from "@/lib/api/jobs"
-import { getuserpremiumById } from "@/lib/api/users"
+import { getuserpremiumById } from "@/lib/api/users-client"
 import { authClient } from "@/lib/auth-client"
 import {
   EMPTY_JOB_FORM,

@@ -1,3 +1,6 @@
+
+import { authFetch } from "../core/server"
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 /** Every stage an application can be in, in the order they usually happen. */
@@ -182,20 +185,11 @@ export async function updateApplicationStatus(
  * `userId` field saved with each application.
  */
 export async function getMyApplications(
-  userId: string
+  query: string
 ): Promise<JobApplication[]> {
-  const response = await fetch(
-    `${BASE_URL}/applications?applicantId=${encodeURIComponent(userId)}`,
-    { cache: "no-store" }
-  )
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch applications (${response.status})`)
-  }
-
-  const data = await response.json()
-
-  return parseApplications(data)
+  const api = `${BASE_URL}/application?${query}`
+  const response = await authFetch(api)
+  return response.json()
 }
 
 /**
@@ -222,6 +216,10 @@ export async function getApplicationsByJobIds(
 
   return parseApplications(data)
 }
+
+
+
+
 
 export async function getMyApplicationsCount(userId: string): Promise<number> {
   const response = await fetch(
