@@ -9,8 +9,10 @@ import { TablePagination } from "@/components/table-pagination"
 import { ApplicationsTable } from "./_components/applications-table"
 import { MobileApplicationCard } from "./_components/mobile-application-card"
 
-import { getMyApplications, JobApplication } from "@/lib/actions/applications"
+import type { JobApplication } from "@/lib/actions/applications"
 import { authClient } from "@/lib/auth-client"
+
+import { getMyApplications } from "./_actions/applications"
 
 const PAGE_SIZE = 5
 
@@ -46,7 +48,7 @@ export default function MyApplicationsPage() {
       setError(null)
 
       try {
-        const data = await getMyApplications(userId)
+        const data = await getMyApplications()
         if (active) setApplications(data)
       } catch (loadError) {
         console.error("Failed to load applications:", loadError)

@@ -15,9 +15,9 @@ export function ApplicationsTable({
 }) {
   return (
     <div className="dark-scrollbar hidden overflow-x-auto md:block">
-      <table className="w-full min-w-[720px] border-collapse text-left">
+      <table className="w-full min-w-180 border-collapse text-left">
         <thead>
-          <tr className="border-b border-white/[0.07] bg-white/[0.02]">
+          <tr className="border-b border-white/[0.07] bg-white/2">
             {COLUMNS.map((label) => (
               <th
                 key={label}
@@ -36,7 +36,7 @@ export function ApplicationsTable({
           {applications.map((application) => (
             <tr
               key={application._id ?? application.jobId}
-              className="border-b border-white/[0.05] transition last:border-0 hover:bg-white/[0.02]"
+              className="border-b border-white/5 transition last:border-0 hover:bg-white/2"
             >
               <td className="px-4 py-3.5">
                 <div className="flex min-w-0 items-center gap-3">

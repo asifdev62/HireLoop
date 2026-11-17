@@ -1,6 +1,4 @@
 
-import { authFetch } from "../core/server"
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 /** Every stage an application can be in, in the order they usually happen. */
@@ -175,20 +173,6 @@ export async function updateApplicationStatus(
     )
   }
 
-  return response.json()
-}
-
-/**
- * Every application of one seeker, newest first.
- *
- * The API takes the seeker id as `applicantId` and matches it against the
- * `userId` field saved with each application.
- */
-export async function getMyApplications(
-  query: string
-): Promise<JobApplication[]> {
-  const api = `${BASE_URL}/application?${query}`
-  const response = await authFetch(api)
   return response.json()
 }
 
