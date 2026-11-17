@@ -17,9 +17,23 @@ export default function SignInPage() {
   )
 }
 
+/**
+ * Only allow internal paths. Without this, a link like
+ * /sign-in?redirectTo=https://evil.example could send a freshly signed-in
+ * user to an attacker's site (an open redirect).
+ */
+function safeRedirect(value: string | null) {
+  if (!value) return "/"
+  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) {
+    return "/"
+  }
+
+  return value
+}
+
 function SignInForm() {
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirectTo") ?? "/"
+  const redirectTo = safeRedirect(searchParams.get("redirectTo"))
 
   const [formData, setFormData] = useState({
     email: "",
@@ -67,6 +81,7 @@ function SignInForm() {
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
+        callbackURL: redirectTo,
       })
 
       if (error) {

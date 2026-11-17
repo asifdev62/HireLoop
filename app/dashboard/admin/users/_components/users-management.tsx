@@ -13,7 +13,7 @@ import { MobileUserCard } from "./mobile-user-card"
 import { UsersStats } from "./users-stats"
 import { UsersTable } from "./users-table"
 import { UsersToolbar } from "./users-toolbar"
-import { updateuserRole } from "@/lib/actions/users"
+import { updateUserRoleAction } from "@/lib/actions/users"
 
 const PAGE_SIZE = 8
 
@@ -96,9 +96,9 @@ export function UsersManagement({
     try {
       setUpdatingUserId(id)
 
-      const res = await updateuserRole(id, role)
+      const res = await updateUserRoleAction(id, role)
 
-      if (res.modifiedCount > 0) {
+      if ((res.modifiedCount ?? 0) > 0) {
         setUsers((prev) =>
           prev.map((user) =>
             user.id === id

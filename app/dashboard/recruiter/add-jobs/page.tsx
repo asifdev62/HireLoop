@@ -31,8 +31,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createJob, getMyJobsCount } from "@/lib/api/jobs"
-import { getuserpremiumById } from "@/lib/api/users-client"
+import {
+  createJobAction,
+  getMyJobsCountAction,
+} from "@/lib/actions/job-actions"
+import { getPremiumStatusAction } from "@/lib/actions/users"
 import { authClient } from "@/lib/auth-client"
 import {
   EMPTY_JOB_FORM,
@@ -111,10 +114,10 @@ export default function AddJobsPage() {
       setIsSubmitting(true)
 
       // 1. Check if recruiter is premium
-      const premiumResult = await getuserpremiumById(user.id)
+      const premiumResult = await getPremiumStatusAction()
 
       // 2. Check how many jobs this recruiter has already posted
-      const jobCount = await getMyJobsCount(user.id)
+      const jobCount = await getMyJobsCountAction()
 
       // 3. Free limit check: maximum 2 free job postings
       if (!premiumResult?.premium && jobCount >= 2) {
@@ -129,18 +132,16 @@ export default function AddJobsPage() {
       }
 
       // Salaries are text in the form, but numbers for the API.
+      // The recruiter identity is added on the server from the session.
       const jobData = {
         ...formData,
-        recruiterId: user.id,
-        recruiterEmail: user.email,
         jobType,
         isRemote,
         minSalary: Number(formData.minSalary),
         maxSalary: Number(formData.maxSalary),
       }
 
-      const result = await createJob(jobData)
-      console.log("createdJob", result)
+      await createJobAction(jobData)
 
       toast.add({
         title: "Job Created",

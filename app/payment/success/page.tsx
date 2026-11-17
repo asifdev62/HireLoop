@@ -14,7 +14,8 @@ import {
   Sparkles,
 } from "lucide-react"
 
-import { checkoutverify } from "@/lib/actions/payments"
+import { verifyCheckoutAction } from "@/lib/actions/payments"
+import { getSession } from "@/lib/core/server"
 import { stripe } from "@/lib/stripe"
 import { CopyButton, PrintReceiptButton } from "./_components/success-actions"
 
@@ -27,6 +28,13 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
   if (!sessionId) {
     redirect("/payment")
+  }
+
+  // Only a signed-in user may see a receipt.
+  const userSession = await getSession()
+
+  if (!userSession?.user?.id) {
+    redirect(`/sign-in?redirectTo=/payment/success`)
   }
 
   let session: Stripe.Checkout.Session | null = null
@@ -52,12 +60,19 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     redirect("/payment?canceled=true")
   }
 
-  // Trigger backend verification / record update safely
+  // The receipt must belong to the signed-in user (admins may inspect any).
+  const ownerId = session.metadata?.userId
+  if (ownerId !== userSession.user.id && userSession.user.role !== "admin") {
+    redirect("/payment")
+  }
+
+  // Trigger backend verification / record update safely.
   try {
-    const verifyResult = await checkoutverify(sessionId)
-    console.log("Checkout verification result:", verifyResult)
-  } catch (error) {
-    console.error("Error during checkout verification:", error)
+    await verifyCheckoutAction(sessionId)
+  } catch {
+    // Never log payment identifiers or tokens. The page still shows the
+    // Stripe-confirmed receipt; the API retry happens on the next visit.
+    console.error("Checkout verification could not be completed")
   }
 
   // Extract payment_intent details

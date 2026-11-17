@@ -1,7 +1,12 @@
 import { getusers } from "@/lib/api/users"
+import { requireRole } from "@/lib/core/server"
 
 import { UsersManagement } from "./_components/users-management"
 import { toManagedUser, type ManagedUser } from "./_data/users"
+
+// This page reads the session with `headers()`, so it must never be cached or
+// prerendered with one user's data.
+export const dynamic = "force-dynamic"
 
 /**
  * Admin "Users" page.
@@ -11,6 +16,10 @@ import { toManagedUser, type ManagedUser } from "./_data/users"
  * crashing the route.
  */
 export default async function AdminUsersPage() {
+  // Defense in depth: the layout already checks this, but the page also
+  // refuses to fetch anything for a non-admin session.
+  await requireRole("admin")
+
   let users: ManagedUser[] = []
   let loadError: string | null = null
 

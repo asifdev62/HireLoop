@@ -12,6 +12,10 @@ export type JobData = {
   qualifications: string
   jobType: string
   isRemote: boolean
-  recruiterId: string
+  /**
+   * Legacy fields from the old browser-side flow. They are ignored by the
+   * server action and by the API; ownership always comes from the session.
+   */
+  recruiterId?: string
   recruiterEmail?: string
 }

@@ -1,5 +1,10 @@
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+/**
+ * Client-safe application types and normalisation helpers.
+ *
+ * The network calls live in `application-actions.ts` ("use server") so they
+ * always run with the verified session. This file has no fetch code on
+ * purpose: it is imported by client components.
+ */
 
 /** Every stage an application can be in, in the order they usually happen. */
 export const APPLICATION_STATUSES = [
@@ -47,19 +52,18 @@ export type JobApplication = {
   archived: boolean
 }
 
-/**
- * What the apply form sends. The backend adds the status ("Applied"), the
- * applied date, and `archived: false`.
- */
-export type NewApplication = Omit<
-  JobApplication,
-  "_id" | "status" | "appliedAt" | "updatedAt" | "archived"
->
-
 /** What `POST /applications` sends back (MongoDB `insertOne` result). */
 export type ApplicationInsertResult = {
   acknowledged?: boolean
   insertedId?: string
+}
+
+/** What `PATCH /applications/:id` sends back (MongoDB `updateOne` result). */
+export type ApplicationUpdateResult = {
+  acknowledged?: boolean
+  matchedCount?: number
+  modifiedCount?: number
+  status?: ApplicationStatus
 }
 
 function readString(value: unknown, fallback = "") {
@@ -110,7 +114,7 @@ export function normalizeApplication(
 }
 
 /** Turns an unknown API payload into normalised applications. */
-function parseApplications(data: unknown): JobApplication[] {
+export function parseApplications(data: unknown): JobApplication[] {
   if (!Array.isArray(data)) return []
 
   return data.map((item: unknown) =>
@@ -118,104 +122,4 @@ function parseApplications(data: unknown): JobApplication[] {
       item && typeof item === "object" ? (item as Record<string, unknown>) : {}
     )
   )
-}
-
-/** Saves one application and returns the insert result. */
-export async function applyToAJob(
-  data: NewApplication
-): Promise<ApplicationInsertResult> {
-  const application: JobApplication = {
-    ...data,
-    status: "Applied",
-    appliedAt: new Date().toISOString(),
-    archived: false,
-  }
-
-  const response = await fetch(`${BASE_URL}/applications`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(application),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Failed to submit the application (${response.status})`)
-  }
-
-  return response.json()
-}
-
-/** What `PATCH /applications/:id` sends back (MongoDB `updateOne` result). */
-export type ApplicationUpdateResult = {
-  acknowledged?: boolean
-  matchedCount?: number
-  modifiedCount?: number
-  status?: ApplicationStatus
-}
-
-/** Saves a new pipeline status for one application. */
-export async function updateApplicationStatus(
-  applicationId: string,
-  status: ApplicationStatus
-): Promise<ApplicationUpdateResult> {
-  const response = await fetch(`${BASE_URL}/applications/${applicationId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ status }),
-  })
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to update the application status (${response.status})`
-    )
-  }
-
-  return response.json()
-}
-
-/**
- * Every application sent to the given jobs (the recruiter view).
- *
- * The backend filters on `jobIds`; the page still checks the job ids again as a
- * safety net, so an older API cannot leak another recruiter's applications.
- */
-export async function getApplicationsByJobIds(
-  jobIds: string[]
-): Promise<JobApplication[]> {
-  if (jobIds.length === 0) return []
-
-  const response = await fetch(
-    `${BASE_URL}/applications?jobIds=${encodeURIComponent(jobIds.join(","))}`,
-    { cache: "no-store" }
-  )
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch job applications (${response.status})`)
-  }
-
-  const data = await response.json()
-
-  return parseApplications(data)
-}
-
-
-
-
-
-export async function getMyApplicationsCount(userId: string): Promise<number> {
-  const response = await fetch(
-    `${BASE_URL}/applications/count?applicantId=${encodeURIComponent(userId)}`,
-    { cache: "no-store" }
-  )
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch applications count (${response.status})`)
-  }
-
-  const data = await response.json()
-
-  return data.count
 }

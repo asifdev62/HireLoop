@@ -16,7 +16,7 @@ import {
   formatSalary,
   type Job,
 } from "@/app/dashboard/recruiter/_data/jobData"
-import { getJobs } from "@/lib/api/jobs"
+import { getPublicJobsAction } from "@/lib/actions/job-actions"
 
 const FEATURED_COUNT = 6
 
@@ -87,13 +87,7 @@ export default function FeaturedJobs() {
 
     async function loadJobs() {
       try {
-        const data = await getJobs()
-
-        const jobList: Job[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.jobs)
-            ? data.jobs
-            : []
+        const jobList = (await getPublicJobsAction()) as Job[]
 
         if (active) setJobs(jobList.slice(0, FEATURED_COUNT))
       } catch (loadError) {

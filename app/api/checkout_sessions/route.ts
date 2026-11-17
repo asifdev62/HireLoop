@@ -1,40 +1,49 @@
 import { NextResponse } from "next/server"
-import { headers } from "next/headers"
-import { stripe } from "@/lib/stripe"
+
 import { getSession } from "@/lib/core/server"
-
-type HeaderReader = {
-  get(name: string): string | null
-}
-
-/**
- * Stripe needs absolute redirect URLs. `Origin` is present on the browser's
- * POST, but fall back to BETTER_AUTH_URL if a proxy strips it.
- */
-function resolveOrigin(headerList: HeaderReader) {
-  const origin = headerList.get("origin")
-
-  if (origin) {
-    return origin
-  }
-
-  return process.env.BETTER_AUTH_URL || "http://localhost:3000"
-}
+import { stripe } from "@/lib/stripe"
 
 const SEEKER_PRICE_ID = "price_1UbzBuRxznHYYJr5v2jrhb5M" // $20.00
 const RECRUITER_PRICE_ID = "price_1Uc8ZdRxznHYYJr5lHZd0xs3" // $50.00
 
+/**
+ * Stripe needs absolute redirect URLs. Only the configured app origin is
+ * allowed, never a value taken from the request (that would let an attacker
+ * send the payment confirmation to their own site).
+ */
+function getTrustedOrigin() {
+  return (process.env.BETTER_AUTH_URL || "http://localhost:3000").replace(
+    /\/$/,
+    ""
+  )
+}
+
 export async function POST() {
   const userSession = await getSession()
-  try {
-    const origin = resolveOrigin(await headers())
-    const userRole = userSession?.user.role
 
+  if (!userSession?.user?.id || !userSession.user.email) {
+    return NextResponse.json(
+      { error: "Please sign in to continue" },
+      { status: 401 }
+    )
+  }
+
+  const userRole = userSession.user.role
+
+  // Admins do not buy seeker/recruiter plans, and unknown roles are rejected.
+  if (userRole !== "seeker" && userRole !== "recruiter") {
+    return NextResponse.json(
+      { error: "This plan is not available for your account" },
+      { status: 403 }
+    )
+  }
+
+  try {
+    const origin = getTrustedOrigin()
     const isSubscription = userRole === "recruiter"
     const priceId = isSubscription ? RECRUITER_PRICE_ID : SEEKER_PRICE_ID
     const mode = isSubscription ? "subscription" : "payment"
 
-    // Create Checkout Sessions from body params.
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -43,24 +52,23 @@ export async function POST() {
         },
       ],
       mode,
-      customer_email: userSession?.user.email,
+      customer_email: userSession.user.email,
       metadata: {
-        userId: userSession?.user.id ?? null,
-        role: userRole ?? "seeker",
+        userId: userSession.user.id,
+        role: userRole,
       },
       ...(isSubscription
         ? {
             subscription_data: {
               metadata: {
-                userId: userSession?.user.id ?? null,
-                role: userRole ?? "seeker",
+                userId: userSession.user.id,
+                role: userRole,
               },
             },
           }
         : {}),
       success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/payment?canceled=true`,
-      // Provide a name (for example, hosted_web_0001) to label this Checkout integration and measure its conversion independently
       integration_identifier: "hire_loop_web_007",
     })
 
@@ -71,11 +79,14 @@ export async function POST() {
       )
     }
 
-    // The client redirects itself, so the browser can leave the app for Stripe.
     return NextResponse.json({ url: session.url })
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
+  } catch {
+    // Do not return Stripe/database error details to the browser.
+    console.error("Failed to create a Stripe checkout session")
 
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(
+      { error: "Could not start the checkout. Please try again." },
+      { status: 500 }
+    )
   }
 }

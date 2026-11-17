@@ -10,7 +10,6 @@ import {
   EyeOff,
   Lock,
   Mail,
-  ShieldCheck,
   User,
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
@@ -18,7 +17,9 @@ import { cn } from "@/lib/utils"
 import { toast } from "@/components/ui/toast"
 import { useRouter } from "next/navigation"
 
-type Role = "seeker" | "recruiter" | "admin"
+// Admin is intentionally not offered at sign-up. An existing admin must grant
+// that role later; the server also rejects any attempt to self-assign it.
+type Role = "seeker" | "recruiter"
 
 const ROLES: {
   value: Role
@@ -27,7 +28,6 @@ const ROLES: {
 }[] = [
   { value: "seeker", label: "Seeker", icon: Briefcase },
   { value: "recruiter", label: "Recruiter", icon: Building2 },
-  { value: "admin", label: "Admin", icon: ShieldCheck },
 ]
 
 export default function SignUpPage() {
@@ -81,7 +81,9 @@ export default function SignUpPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role,
+        // `role` itself is locked down by Better Auth; the server turns this
+        // public value into seeker/recruiter (or falls back to seeker).
+        requestedRole: formData.role,
       })
       if (error) {
         toast.add({ title: error.message, type: "error" })
@@ -175,7 +177,7 @@ export default function SignUpPage() {
               <div
                 role="radiogroup"
                 aria-label="Select your role"
-                className="grid grid-cols-3 gap-2"
+                className="grid grid-cols-2 gap-2"
               >
                 {ROLES.map(({ value, label, icon: Icon }) => {
                   const isSelected = formData.role === value

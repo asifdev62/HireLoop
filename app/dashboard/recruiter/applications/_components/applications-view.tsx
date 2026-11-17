@@ -7,12 +7,14 @@ import { ChevronRight, FileText, Users } from "lucide-react"
 import { toast } from "@/components/ui/toast"
 import { TablePagination } from "@/components/table-pagination"
 import { authClient } from "@/lib/auth-client"
-import { getJobs } from "@/lib/api/jobs"
+import { getMyJobsAction } from "@/lib/actions/job-actions"
 import {
-  getApplicationsByJobIds,
-  updateApplicationStatus,
-  type ApplicationStatus,
-  type JobApplication,
+  getRecruiterApplicationsAction,
+  updateApplicationStatusAction,
+} from "@/lib/actions/application-actions"
+import type {
+  ApplicationStatus,
+  JobApplication,
 } from "@/lib/actions/applications"
 
 import type { Job } from "../../_data/jobData"
@@ -66,27 +68,20 @@ export function ApplicationsView() {
       setError(null)
 
       try {
-        const jobsData = await getJobs()
-
-        const jobList: Job[] = Array.isArray(jobsData)
-          ? jobsData
-          : Array.isArray(jobsData?.jobs)
-            ? jobsData.jobs
-            : []
-
-        // Only the jobs this recruiter posted.
-        const myJobs = jobList.filter((job) => job.recruiterId === recruiterId)
+        // Both calls are server actions: the API scopes jobs and applications
+        // to the signed-in recruiter using the verified session.
+        const myJobs = (await getMyJobsAction()) as Job[]
 
         const jobIds = myJobs
           .map((job) => job._id || job.id)
           .filter((id): id is string => Boolean(id))
 
-        const data = await getApplicationsByJobIds(jobIds)
+        const data = await getRecruiterApplicationsAction(jobIds)
         const myJobIds = new Set(jobIds)
 
         if (active) {
           setJobs(myJobs)
-          // Guard against an older API that ignores the `jobIds` query.
+          // Extra safety net: only keep applications for this recruiter's jobs.
           setApplications(
             data.filter((application) => myJobIds.has(application.jobId))
           )
@@ -198,7 +193,7 @@ export function ApplicationsView() {
     setSavingId(key)
 
     try {
-      await updateApplicationStatus(application._id, status)
+      await updateApplicationStatusAction(application._id, status)
 
       toast.add({
         title: "Status updated",

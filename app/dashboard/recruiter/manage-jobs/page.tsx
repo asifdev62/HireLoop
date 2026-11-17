@@ -16,8 +16,8 @@ import { useEffect, useState } from "react"
 import { BriefcaseBusiness, ChevronRight, Plus } from "lucide-react"
 
 import { toast } from "@/components/ui/toast"
-import { deleteJob, getJobs } from "@/lib/api/jobs"
-import { getApplicationsByJobIds } from "@/lib/actions/applications"
+import { deleteJobAction, getMyJobsAction } from "@/lib/actions/job-actions"
+import { getRecruiterApplicationsAction } from "@/lib/actions/application-actions"
 import { authClient } from "@/lib/auth-client"
 
 import type { Job } from "../_data/jobData"
@@ -49,16 +49,9 @@ export default function ManageJobsPage() {
       setError(false)
 
       try {
-        const data = await getJobs()
-
-        const jobList: Job[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.jobs)
-            ? data.jobs
-            : []
-
-        // Only show jobs this recruiter created.
-        const myJobs = jobList.filter((job) => job.recruiterId === recruiterId)
+        // The server action asks the API for this recruiter's jobs only. The
+        // browser no longer downloads every job and filters them itself.
+        const myJobs = (await getMyJobsAction()) as Job[]
 
         // Show the real applicant count on each row (the job document does not
         // keep this number up to date).
@@ -66,7 +59,7 @@ export default function ManageJobsPage() {
           .map((job) => job._id || job.id)
           .filter((id): id is string => Boolean(id))
 
-        const applications = await getApplicationsByJobIds(jobIds).catch(
+        const applications = await getRecruiterApplicationsAction(jobIds).catch(
           () => []
         )
 
@@ -112,7 +105,7 @@ export default function ManageJobsPage() {
   // Delete a job and remove it from the list on screen.
   async function handleDelete(id: string): Promise<boolean> {
     try {
-      const data = await deleteJob(id)
+      const data = await deleteJobAction(id)
 
       if (data?.deletedCount === 0) {
         toast.add({

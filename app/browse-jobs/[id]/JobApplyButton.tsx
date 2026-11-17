@@ -2,29 +2,20 @@
 
 import { useRouter } from "next/navigation"
 
-import { applyToAJob, getMyApplicationsCount } from "@/lib/actions/applications"
+import {
+  applyToJobAction,
+  getMyApplicationsCountAction,
+} from "@/lib/actions/application-actions"
 
 import { authClient } from "@/lib/auth-client"
 import { toast } from "@/components/ui/toast"
-import { getuserpremiumById } from "@/lib/api/users-client"
+import { getPremiumStatusAction } from "@/lib/actions/users"
 
 type JobApplyButtonProps = {
   jobId: string
-  jobTitle: string
-  companyName: string
-  jobType: string
-  location: string
-  isRemote: boolean
 }
 
-const JobApplyButton = ({
-  jobId,
-  jobTitle,
-  companyName,
-  jobType,
-  location,
-  isRemote,
-}: JobApplyButtonProps) => {
+const JobApplyButton = ({ jobId }: JobApplyButtonProps) => {
   const router = useRouter()
 
   const { data: session } = authClient.useSession()
@@ -42,33 +33,22 @@ const JobApplyButton = ({
         return
       }
       //is premium user
-      const premiumResult = await getuserpremiumById(user.id)
+      const premiumResult = await getPremiumStatusAction()
 
-      console.log("premium Result:", premiumResult)
       // Get total applications of this user
-      const countResult = await getMyApplicationsCount(user.id)
+      const countResult = await getMyApplicationsCountAction()
 
-      // Check application limit
+      // Check application limit (the API enforces this too)
       if (!premiumResult.premium && countResult >= 2) {
         router.push("/payment")
         return
       }
 
-      // Submit new application
-      const result = await applyToAJob({
-        userId: user.id,
-        applicantName: user.name,
-        applicantEmail: user.email,
-        jobId,
-        jobTitle,
-        companyName,
-        jobType,
-        location,
-        isRemote,
-      })
+      // Submit new application. Identity and job details are added on the
+      // server; the browser only sends the job id.
+      const result = await applyToJobAction({ jobId })
 
       if (result.insertedId) {
-        console.log("Application submitted successfully")
         router.push("/browse-jobs")
 
         toast.add({
@@ -77,7 +57,12 @@ const JobApplyButton = ({
         })
       }
     } catch (error) {
-      console.error("Application failed:", error)
+      toast.add({
+        title: "Could not apply",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      })
     }
   }
 

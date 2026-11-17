@@ -3,31 +3,148 @@ import { MongoClient } from "mongodb"
 import { mongodbAdapter } from "@better-auth/mongo-adapter"
 import { admin } from "better-auth/plugins"
 
-const client = new MongoClient(process.env.MONGODB_URL as string)
+const mongoUrl = process.env.MONGODB_URL
+const secret = process.env.BETTER_AUTH_SECRET
+const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3000"
+
+if (!mongoUrl) {
+  throw new Error("MONGODB_URL is required")
+}
+
+if (!secret) {
+  throw new Error("BETTER_AUTH_SECRET is required")
+}
+
+const client = new MongoClient(mongoUrl)
 const db = client.db("hireloopdb")
 
+/**
+ * Public roles a user may pick for themselves at sign-up.
+ * "admin" is deliberately missing: an account can only become an admin
+ * through an existing admin (or directly in the database).
+ */
+const SELF_ASSIGNABLE_ROLES = ["seeker", "recruiter"] as const
+
+function sanitizeRequestedRole(value: unknown) {
+  const requested = Array.isArray(value) ? value[0] : value
+
+  return SELF_ASSIGNABLE_ROLES.includes(
+    requested as (typeof SELF_ASSIGNABLE_ROLES)[number]
+  )
+    ? (requested as (typeof SELF_ASSIGNABLE_ROLES)[number])
+    : "seeker"
+}
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+
 export const auth = betterAuth({
+  baseURL,
+  secret,
   database: mongodbAdapter(db, {
     client,
   }),
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
+  },
+  session: {
+    // 7 days, refreshed at most once per day.
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
+  advanced: {
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    },
+    // Only trust proxy headers when the deployment explicitly opts in.
+    trustedProxyHeaders: process.env.TRUST_PROXY === "1",
+  },
+  trustedOrigins: Array.from(
+    new Set([baseURL, "http://localhost:3000"].filter(Boolean))
+  ),
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 30,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 8 },
+      "/sign-up/email": { window: 60, max: 5 },
+      "/forget-password": { window: 60, max: 3 },
+      "/reset-password": { window: 60, max: 5 },
+    },
   },
   user: {
     additionalFields: {
-      role: {
-        type: ["seeker", "recruiter", "admin"],
+      // The admin plugin owns the real `role` field and marks it `input: false`,
+      // so it can never be sent by a client. Sign-up therefore posts this
+      // separate field, which the create hook below converts into `role`.
+      requestedRole: {
+        type: "string",
         required: false,
-        defaultValue: "seeker",
         input: true,
+        // Never expose it in user/session responses.
+        returned: false,
       },
     },
   },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user, context) => {
+          const data = { ...(user as Record<string, unknown>) }
+
+          // Only the admin-only endpoint may pick an arbitrary role. Every
+          // other path (sign-up, OAuth callback, ...) is forced to a public role.
+          if (context?.path === "/admin/create-user") {
+            return { data }
+          }
+
+          data.role = sanitizeRequestedRole(data.requestedRole)
+          // Store the sanitized value, not whatever the client asked for.
+          data.requestedRole = data.role
+
+          return { data }
+        },
+      },
+      update: {
+        before: async (user, context) => {
+          // The admin plugin checks permissions before it reaches this hook,
+          // so only those two endpoints may change a role.
+          const path = context?.path ?? ""
+
+          if (path === "/admin/set-role" || path === "/admin/update-user") {
+            return { data: user }
+          }
+
+          // Every other update (including the client-facing update-user
+          // endpoint) must not be able to change the role.
+          const rest = { ...(user as Record<string, unknown>) }
+          delete rest.role
+
+          return { data: rest }
+        },
+      },
     },
   },
-  plugins: [admin()],
+  ...(googleClientId && googleClientSecret
+    ? {
+        socialProviders: {
+          google: {
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          },
+        },
+      }
+    : {}),
+  plugins: [
+    admin({
+      defaultRole: "seeker",
+      adminRoles: ["admin"],
+    }),
+  ],
 })

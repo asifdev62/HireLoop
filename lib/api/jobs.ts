@@ -1,9 +1,26 @@
-import { JobData } from "../actions/jobs"
+import "server-only"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
+import type { JobData } from "../actions/jobs"
+
+/**
+ * Public read helpers for server components only.
+ *
+ * Mutating calls (create/delete/count) live in `lib/actions/job-actions.ts`
+ * so they always run with the verified session. They used to live here and
+ * were called directly from the browser without any authentication.
+ */
+
+const BASE_URL =
+  process.env.API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "http://localhost:5000"
 
 export const getJobs = async (query: string = "") => {
-  const res = await fetch(`${BASE_URL}/jobs?${query}`)
+  const safeQuery = typeof query === "string" ? query.slice(0, 300) : ""
+
+  const res = await fetch(`${BASE_URL}/jobs?${safeQuery}`, {
+    cache: "no-store",
+  })
 
   if (!res.ok) {
     throw new Error("Failed to fetch jobs")
@@ -12,55 +29,12 @@ export const getJobs = async (query: string = "") => {
   return res.json()
 }
 
-//create job
-
-export const createJob = async (data: JobData) => {
-  const res = await fetch(`${BASE_URL}/jobs`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-
-  if (!res.ok) {
-    throw new Error("Failed to create job")
-  }
-
-  return res.json()
-}
-
-//delete job
-export const deleteJob = async (jobId: string) => {
-  const res = await fetch(`${BASE_URL}/jobs/${jobId}`, {
-    method: "DELETE",
-  })
-
-  if (!res.ok) {
-    throw new Error("Failed to delete job")
-  }
-
-  return res.json()
-}
-
-//get my jobs count
-export const getMyJobsCount = async (recruiterId: string): Promise<number> => {
-  const res = await fetch(
-    `${BASE_URL}/jobs/count?recruiterId=${encodeURIComponent(recruiterId)}`,
-    { cache: "no-store" }
-  )
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch jobs count")
-  }
-
-  const data = await res.json()
-  return data.count ?? 0
-}
-
-//details job
 export const getJobById = async (jobId: string) => {
-  const res = await fetch(`${BASE_URL}/jobs/${jobId}`)
+  if (typeof jobId !== "string" || !/^[a-f0-9]{24}$/i.test(jobId)) {
+    throw new Error("Invalid job id")
+  }
+
+  const res = await fetch(`${BASE_URL}/jobs/${jobId}`, { cache: "no-store" })
 
   if (!res.ok) {
     throw new Error("Failed to fetch job")
@@ -68,3 +42,6 @@ export const getJobById = async (jobId: string) => {
 
   return res.json()
 }
+
+/** Kept for type compatibility with the recruiter pages. */
+export type { JobData }
