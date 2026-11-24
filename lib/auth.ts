@@ -77,6 +77,26 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     maxPasswordLength: 128,
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Google has already verified ownership of its addresses, so a Google
+      // sign-in that matches an existing email/password account belongs to the
+      // same person. Without this Better Auth refuses the sign-in with
+      // `account_not_linked` instead of attaching Google to that account.
+      trustedProviders: ["google"],
+      // Email/password sign-ups here never verify their address (no mail
+      // sender is configured), so the default requirement of a verified local
+      // email rejects every existing account. This is the option's intended
+      // escape hatch; it is deprecated upstream and the gate becomes
+      // unconditional in a future Better Auth minor — revisit when email
+      // verification is wired up.
+      requireLocalEmailVerified: false,
+      // Keep the existing role/identity but refresh name and avatar from the
+      // Google profile when the provider is linked.
+      updateUserInfoOnLink: true,
+    },
+  },
   session: {
     // 7 days, refreshed at most once per day.
     expiresIn: 60 * 60 * 24 * 7,
