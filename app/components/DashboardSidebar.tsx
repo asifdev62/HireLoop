@@ -68,10 +68,10 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       icon: CreditCard,
     },
     {
-      id: "seeker-settings",
-      name: "Settings",
-      url: "/dashboard/seeker/settings",
-      icon: Settings,
+      id: "seeker-profile",
+      name: "My Profile",
+      url: "/dashboard/seeker/profile",
+      icon: User,
     },
   ],
 
@@ -102,10 +102,10 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
     },
 
     {
-      id: "recruiter-settings",
-      name: "Settings",
-      url: "/dashboard/recruiter/settings",
-      icon: Settings,
+      id: "recruiter-profile",
+      name: "My Profile",
+      url: "/dashboard/recruiter/profile",
+      icon: User,
     },
   ],
 
@@ -142,10 +142,10 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
       icon: CreditCard,
     },
     {
-      id: "admin-settings",
-      name: "Settings",
-      url: "/dashboard/admin/settings",
-      icon: Settings,
+      id: "admin-profile",
+      name: "My profile",
+      url: "/dashboard/admin/profile",
+      icon: User,
     },
   ],
 }

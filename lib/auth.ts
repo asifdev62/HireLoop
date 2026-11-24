@@ -5,7 +5,35 @@ import { admin } from "better-auth/plugins"
 
 const mongoUrl = process.env.MONGODB_URL
 const secret = process.env.BETTER_AUTH_SECRET
-const baseURL = process.env.BETTER_AUTH_URL || "http://localhost:3000"
+// `.env` values can pick up trailing whitespace; a stray space here makes
+// every Origin check fail with INVALID_ORIGIN.
+const baseURL = (process.env.BETTER_AUTH_URL || "http://localhost:3000").trim()
+
+/**
+ * Better Auth compares the request Origin byte-for-byte against
+ * `trustedOrigins`. `localhost` and `127.0.0.1` (and `[::1]`) all reach the
+ * same dev server, so a session started at one of them is rejected at another.
+ * Adding the aliases only in development keeps production strict.
+ */
+function devLoopbackOrigins(url: string) {
+  if (process.env.NODE_ENV === "production") return []
+
+  try {
+    const { protocol, port } = new URL(url)
+
+    return ["localhost", "127.0.0.1", "[::1]"].map(
+      (host) => `${protocol}//${host}${port ? `:${port}` : ""}`
+    )
+  } catch {
+    return []
+  }
+}
+
+/** Extra origins (LAN IP, tunnel, preview URL) from a comma-separated env var. */
+const extraTrustedOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 if (!mongoUrl) {
   throw new Error("MONGODB_URL is required")
@@ -58,14 +86,18 @@ export const auth = betterAuth({
     defaultCookieAttributes: {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      // Derived from the URL the app is actually served from. Keying this off
+      // NODE_ENV broke `npm start` over plain http: browsers drop a Secure
+      // cookie on a non-loopback http origin, so sign-in "succeeded" and the
+      // session was never stored.
+      secure: baseURL.startsWith("https://"),
       path: "/",
     },
     // Only trust proxy headers when the deployment explicitly opts in.
     trustedProxyHeaders: process.env.TRUST_PROXY === "1",
   },
   trustedOrigins: Array.from(
-    new Set([baseURL, "http://localhost:3000"].filter(Boolean))
+    new Set([baseURL, ...devLoopbackOrigins(baseURL), ...extraTrustedOrigins])
   ),
   rateLimit: {
     enabled: true,

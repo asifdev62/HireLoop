@@ -6,7 +6,14 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
-import { Bell, LogOut, Mail, MenuIcon, User as UserIcon } from "lucide-react"
+import {
+  Bell,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  MenuIcon,
+  User as UserIcon,
+} from "lucide-react"
 import { toast } from "@/components/ui/toast"
 
 import { authClient } from "@/lib/auth-client"
@@ -23,7 +30,9 @@ import { cn } from "@/lib/utils"
 
 const navLinks = [
   { label: "Browse Jobs", href: "/browse-jobs" },
-  { label: "Company", href: "/company" },
+  { label: "Companies", href: "/companies" },
+  { label: "About", href: "/about" },
+  { label: "Career Tips", href: "/career-tips" },
   { label: "Pricing", href: "/pricing" },
 ]
 
@@ -77,6 +86,7 @@ function UserActions({
   name,
   email,
   image,
+  dashboardHref,
   isSigningOut,
   onSignOut,
   onNavigate,
@@ -84,6 +94,7 @@ function UserActions({
   name?: string | null
   email?: string | null
   image?: string | null
+  dashboardHref: string
   isSigningOut: boolean
   onSignOut: () => void
   onNavigate: () => void
@@ -128,43 +139,23 @@ function UserActions({
             <PopoverPrimitive.Popup className="w-80 max-w-[90vw] rounded-2xl border border-white/10 bg-[#141418] p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.7)] transition duration-150 outline-none data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
               <div className="flex items-center gap-3 border-b border-white/10 pb-3">
                 <UserAvatar name={name} image={image} className="size-10" />
-                <div className="min-w-0">
-                  <PopoverPrimitive.Title className="truncate text-sm font-semibold text-white">
-                    My Account
-                  </PopoverPrimitive.Title>
-                  <PopoverPrimitive.Description className="truncate text-xs text-zinc-400">
-                    Profile details
-                  </PopoverPrimitive.Description>
-                </div>
+                <PopoverPrimitive.Title className="min-w-0 truncate text-sm font-medium text-white">
+                  {email || "Signed in"}
+                </PopoverPrimitive.Title>
               </div>
 
-              <form
-                onSubmit={(event) => event.preventDefault()}
-                className="mt-3 space-y-3"
-              >
-                <label className="block">
-                  <span className="mb-1 block text-xs font-medium text-zinc-400">
-                    Name
-                  </span>
-                  <input
-                    readOnly
-                    value={name ?? ""}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs font-medium text-zinc-400">
-                    Email
-                  </span>
-                  <input
-                    readOnly
-                    value={email ?? ""}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none"
-                  />
-                </label>
-              </form>
-
-              <div className="mt-3 flex flex-col gap-1 border-t border-white/10 pt-2">
+              <div className="mt-2 flex flex-col gap-1">
+                <Link
+                  href={dashboardHref}
+                  onClick={() => {
+                    setPopoverOpen(false)
+                    onNavigate()
+                  }}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-white/75 transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
+                >
+                  <LayoutDashboard className="size-4" />
+                  Dashboard
+                </Link>
                 <Link
                   href="/profile"
                   onClick={() => {
@@ -284,21 +275,6 @@ export default function Navbar() {
                 </Link>
               )
             })}
-
-            {user && (
-              <Link
-                href={dashboardHref}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none",
-                  pathname === dashboardHref
-                    ? "bg-white/5 font-semibold text-white"
-                    : "text-zinc-300"
-                )}
-              >
-                Dashboard
-              </Link>
-            )}
           </div>
 
           {/* Vertical Separator */}
@@ -315,6 +291,7 @@ export default function Navbar() {
               name={user.name}
               email={user.email}
               image={user.image}
+              dashboardHref={dashboardHref}
               isSigningOut={isSigningOut}
               onSignOut={handleSignOut}
               onNavigate={() => setOpen(false)}
@@ -395,20 +372,6 @@ export default function Navbar() {
                   </Link>
                 )
               })}
-              {!isPending && user && (
-                <Link
-                  href={dashboardHref}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none",
-                    pathname === dashboardHref
-                      ? "bg-white/5 font-semibold text-white"
-                      : "text-zinc-300"
-                  )}
-                >
-                  Dashboard
-                </Link>
-              )}
             </div>
 
             <div className="mt-auto border-t border-white/10 p-4">
@@ -423,6 +386,7 @@ export default function Navbar() {
                     name={user.name}
                     email={user.email}
                     image={user.image}
+                    dashboardHref={dashboardHref}
                     isSigningOut={isSigningOut}
                     onSignOut={handleSignOut}
                     onNavigate={() => setOpen(false)}

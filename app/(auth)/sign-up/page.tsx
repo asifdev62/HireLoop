@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
+import { useIsHydrated } from "@/hooks/use-is-hydrated"
 import { toast } from "@/components/ui/toast"
 import { useRouter } from "next/navigation"
 
@@ -50,6 +51,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const isHydrated = useIsHydrated()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -78,8 +80,10 @@ export default function SignUpPage() {
     setIsLoading(true)
     try {
       const { error } = await authClient.signUp.email({
-        name: formData.name,
-        email: formData.email,
+        // Trim before the account is written: an email stored with a stray
+        // leading/trailing space can never be matched at sign-in.
+        name: formData.name.trim(),
+        email: formData.email.trim(),
         password: formData.password,
         // `role` itself is locked down by Better Auth; the server turns this
         // public value into seeker/recruiter (or falls back to seeker).
@@ -230,6 +234,7 @@ export default function SignUpPage() {
                   type="text"
                   name="name"
                   required
+                  autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Md Asif Ali"
@@ -253,6 +258,9 @@ export default function SignUpPage() {
                   type="email"
                   name="email"
                   required
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="asif@gmail.com"
@@ -276,6 +284,7 @@ export default function SignUpPage() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   required
+                  autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
@@ -311,6 +320,7 @@ export default function SignUpPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   required
+                  autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
@@ -367,7 +377,9 @@ export default function SignUpPage() {
 
             {/* Submit Button */}
             <button
-              type="submit"
+              // Inert until hydrated: a native submit would GET the page and
+              // put the password in the URL instead of calling Better Auth.
+              type={isHydrated ? "submit" : "button"}
               disabled={isLoading}
               className="w-full rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.9)] transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
             >

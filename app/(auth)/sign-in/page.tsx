@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
+import { useIsHydrated } from "@/hooks/use-is-hydrated"
 import { useRouter, useSearchParams } from "next/navigation"
 
 // `useSearchParams` suspends during prerendering, so the form lives behind a
@@ -24,11 +25,35 @@ export default function SignInPage() {
  */
 function safeRedirect(value: string | null) {
   if (!value) return "/"
-  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) {
+  if (
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.startsWith("/\\")
+  ) {
     return "/"
   }
 
   return value
+}
+
+/**
+ * Turns the server's terse codes into something actionable, so a failed
+ * sign-in says *why* instead of just "Invalid origin".
+ */
+function signInErrorMessage(error: {
+  code?: string
+  message?: string
+  status?: number
+}) {
+  if (error.status === 429) {
+    return "Too many attempts. Please wait a minute and try again."
+  }
+
+  if (error.code === "INVALID_ORIGIN") {
+    return "This address is not allowed to sign in. Open the app at http://localhost:3000 (or the URL in BETTER_AUTH_URL)."
+  }
+
+  return error.message || "Could not sign in. Please try again."
 }
 
 function SignInForm() {
@@ -41,6 +66,8 @@ function SignInForm() {
     rememberMe: false,
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const isHydrated = useIsHydrated()
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,26 +81,35 @@ function SignInForm() {
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    if (isLoading) return
+    setIsLoading(true)
+
     try {
       const { error } = await authClient.signIn.email({
-        email: formData.email,
+        // Autofill and mobile keyboards often append a space. The server
+        // compares emails exactly, so a stray space reads as "unknown email".
+        email: formData.email.trim(),
         password: formData.password,
         rememberMe: formData.rememberMe,
       })
 
       if (error) {
-        toast.add({ title: error.message, type: "error" })
+        toast.add({ title: signInErrorMessage(error), type: "error" })
         return
       }
 
       toast.add({ title: "Login successful!", type: "success" })
 
+      // A client-side navigation re-fetches the target route's server
+      // components, so the dashboard/Navbar see the new session cookie.
       router.push(redirectTo)
     } catch {
       toast.add({
         title: "Something went wrong. Please try again.",
         type: "error",
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -156,6 +192,9 @@ function SignInForm() {
                   type="email"
                   name="email"
                   required
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="asif@gmail.com"
@@ -187,6 +226,7 @@ function SignInForm() {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   required
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
@@ -227,10 +267,14 @@ function SignInForm() {
 
             {/* Submit Button */}
             <button
-              type="submit"
-              className="w-full rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.9)] transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99]"
+              // Before React hydrates there is no submit handler, so a real
+              // submit would do a native GET and leak the password into the
+              // URL. Stay inert until the handler is attached.
+              type={isHydrated ? "submit" : "button"}
+              disabled={isLoading}
+              className="w-full rounded-xl bg-linear-to-r from-violet-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.9)] transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
+              {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
