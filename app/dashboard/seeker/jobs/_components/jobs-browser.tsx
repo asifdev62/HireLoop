@@ -9,14 +9,7 @@
  * "closing soon") stay client-side on purpose.
  */
 
-import {
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react"
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
 import {
@@ -41,12 +34,12 @@ import {
 
 import { getStatus, type Job } from "@/app/dashboard/recruiter/_data/jobData"
 import { toast } from "@/components/ui/toast"
+import { saveJobAction, unsaveJobAction } from "@/lib/actions/saved-job-actions"
 import { cn } from "@/lib/utils"
 
 import { getPostedAt, JobCard } from "./job-card"
 
 const PAGE_SIZE = 8
-const SAVED_JOBS_KEY = "hireloop:saved-jobs"
 const DAY_IN_MS = 86_400_000
 
 type SortKey = "recommended" | "newest" | "deadline" | "salary"
@@ -107,69 +100,6 @@ function closesThisWeek(job: Job) {
   return days >= 0 && days <= 7
 }
 
-/**
- * Saved jobs live in localStorage and are shared through a tiny external
- * store. `useSyncExternalStore` lets the server render an empty list and the
- * browser swap in the saved ids after hydration without a mismatch.
- */
-const EMPTY_SAVED_JOBS: string[] = []
-
-function readSavedJobs(): string[] {
-  try {
-    const raw = window.localStorage.getItem(SAVED_JOBS_KEY)
-    const parsed: unknown = raw ? JSON.parse(raw) : []
-
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : EMPTY_SAVED_JOBS
-  } catch {
-    return EMPTY_SAVED_JOBS
-  }
-}
-
-let savedJobsSnapshot: string[] | null = null
-const savedJobsListeners = new Set<() => void>()
-
-function subscribeSavedJobs(listener: () => void) {
-  savedJobsListeners.add(listener)
-
-  function handleStorage(event: StorageEvent) {
-    if (event.key !== null && event.key !== SAVED_JOBS_KEY) return
-
-    savedJobsSnapshot = readSavedJobs()
-    listener()
-  }
-
-  window.addEventListener("storage", handleStorage)
-
-  return () => {
-    savedJobsListeners.delete(listener)
-    window.removeEventListener("storage", handleStorage)
-  }
-}
-
-function getSavedJobsSnapshot() {
-  if (savedJobsSnapshot === null) savedJobsSnapshot = readSavedJobs()
-
-  return savedJobsSnapshot
-}
-
-function getSavedJobsServerSnapshot() {
-  return EMPTY_SAVED_JOBS
-}
-
-function saveJobsSnapshot(next: string[]) {
-  savedJobsSnapshot = next
-
-  try {
-    window.localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(next))
-  } catch {
-    // Saving is a nice-to-have; ignore quota or privacy-mode errors.
-  }
-
-  for (const listener of savedJobsListeners) listener()
-}
-
 function StatCard({
   icon: Icon,
   label,
@@ -212,9 +142,11 @@ function StatCard({
 
 export function JobsBrowser({
   jobs,
+  savedJobIds,
   loadError,
 }: {
   jobs: Job[]
+  savedJobIds: string[]
   loadError: string | null
 }) {
   const router = useRouter()
@@ -229,11 +161,8 @@ export function JobsBrowser({
   const [sortBy, setSortBy] = useState<SortKey>("recommended")
   const [view, setView] = useState<ViewMode>("grid")
   const [page, setPage] = useState(1)
-  const savedIds = useSyncExternalStore(
-    subscribeSavedJobs,
-    getSavedJobsSnapshot,
-    getSavedJobsServerSnapshot
-  )
+  const [savedIds, setSavedIds] = useState<string[]>(savedJobIds)
+  const [savingIds, setSavingIds] = useState<string[]>([])
 
   const deferredSearch = useDeferredValue(search)
 
@@ -438,24 +367,50 @@ export function JobsBrowser({
     setSortBy("recommended")
   }
 
-  function toggleSaved(job: Job) {
+  async function toggleSaved(job: Job) {
     const id = job._id || job.id
-    if (!id) return
+    if (!id || savingIds.includes(id)) return
 
     const wasSaved = savedIds.includes(id)
-    const next = wasSaved
-      ? savedIds.filter((item) => item !== id)
-      : [...savedIds, id]
 
-    saveJobsSnapshot(next)
+    // Update the icon right away; roll it back if the API rejects the call.
+    setSavedIds((current) =>
+      wasSaved ? current.filter((item) => item !== id) : [...current, id]
+    )
+    setSavingIds((current) => [...current, id])
 
-    toast.add({
-      title: wasSaved ? "Removed from saved jobs" : "Job saved",
-      description: wasSaved
-        ? `${job.title} was removed from your saved list.`
-        : `${job.title} is saved in this browser.`,
-      type: wasSaved ? "info" : "success",
-    })
+    try {
+      if (wasSaved) {
+        await unsaveJobAction(id)
+      } else {
+        await saveJobAction(id)
+      }
+
+      toast.add({
+        title: wasSaved ? "Removed from saved jobs" : "Job saved",
+        description: wasSaved
+          ? `${job.title} was removed from your saved list.`
+          : `${job.title} is saved to your account.`,
+        type: wasSaved ? "info" : "success",
+      })
+    } catch (error) {
+      setSavedIds((current) =>
+        wasSaved
+          ? current.includes(id)
+            ? current
+            : [...current, id]
+          : current.filter((item) => item !== id)
+      )
+
+      toast.add({
+        title: wasSaved ? "Could not remove the job" : "Could not save the job",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      })
+    } finally {
+      setSavingIds((current) => current.filter((item) => item !== id))
+    }
   }
 
   function goToPage(nextPage: number) {

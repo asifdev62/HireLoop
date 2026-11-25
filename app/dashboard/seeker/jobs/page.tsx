@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import type { Job } from "@/app/dashboard/recruiter/_data/jobData"
 import { getJobs } from "@/lib/api/jobs"
+import { getSavedJobIds } from "@/lib/api/saved-jobs"
 
 import { JobsBrowser } from "./_components/jobs-browser"
 
@@ -38,5 +39,13 @@ export default async function SeekerJobsPage() {
     loadError = "The jobs service is not responding right now."
   }
 
-  return <JobsBrowser jobs={jobs} loadError={loadError} />
+  // Saved jobs live on the user's account now, not in localStorage.
+  const savedJobIds = await getSavedJobIds().catch((error) => {
+    console.error("Failed to load saved job ids:", error)
+    return []
+  })
+
+  return (
+    <JobsBrowser jobs={jobs} savedJobIds={savedJobIds} loadError={loadError} />
+  )
 }

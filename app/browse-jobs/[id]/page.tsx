@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 import {
-  Bookmark,
   Clock,
   Globe,
   HeartPulse,
@@ -16,6 +15,7 @@ import {
 
 import Navbar from "@/components/Navbar"
 import { getJobById } from "@/lib/api/jobs"
+import { isJobSaved } from "@/lib/api/saved-jobs"
 import {
   formatSalary,
   getDepartment,
@@ -24,6 +24,7 @@ import {
 
 import { CompanyOverviewCard } from "../_components/company-overview-card"
 import JobApplyButton from "./JobApplyButton"
+import JobSaveButton from "./JobSaveButton"
 
 type JobDetailsPageProps = {
   params: Promise<{ id: string }>
@@ -49,6 +50,10 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   const job: Job | null = data && data.title ? data : null
 
   if (!job) notFound()
+
+  // Signed-out visitors (and other roles) simply see an unsaved bookmark.
+  // The button asks them to sign in before saving.
+  const jobSaved = await isJobSaved(id).catch(() => false)
 
   const salary = formatSalary(job)
   const initial = job.companyName.charAt(0).toUpperCase() || "J"
@@ -126,14 +131,12 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              {/* TODO: save the job once the saved-jobs API exists. */}
-              <button
-                type="button"
-                aria-label="Save job"
-                className="inline-flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.02] text-zinc-400 transition-colors hover:border-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
-              >
-                <Bookmark className="size-4" aria-hidden="true" />
-              </button>
+              <JobSaveButton
+                key={job._id}
+                jobId={job._id}
+                jobTitle={job.title}
+                initialSaved={jobSaved}
+              />
 
               {/* TODO: open the application form once it exists. */}
               <JobApplyButton jobId={job._id} />
