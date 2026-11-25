@@ -2,17 +2,25 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { Download, FileText } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Download,
+  FileText,
+  Loader2,
+  RefreshCw,
+  Search,
+  Sparkles,
+} from "lucide-react"
 
-import { ApplicationStats } from "./_components/application-stats"
 import { TablePagination } from "@/components/table-pagination"
-import { ApplicationsTable } from "./_components/applications-table"
-import { MobileApplicationCard } from "./_components/mobile-application-card"
-
 import type { JobApplication } from "@/lib/actions/applications"
 import { authClient } from "@/lib/auth-client"
 
 import { getMyApplications } from "./_actions/applications"
+import { ApplicationStats } from "./_components/application-stats"
+import { ApplicationsTable } from "./_components/applications-table"
+import { MobileApplicationCard } from "./_components/mobile-application-card"
 
 const PAGE_SIZE = 5
 
@@ -83,11 +91,13 @@ export default function MyApplicationsPage() {
     (application) => !application.archived
   )
 
+  const archivedApplications = applications.filter(
+    (application) => application.archived
+  )
+
   // Applications based on selected tab.
   const tabApplications =
-    tab === "active"
-      ? activeApplications
-      : applications.filter((application) => application.archived)
+    tab === "active" ? activeApplications : archivedApplications
 
   const totalPages = Math.ceil(tabApplications.length / PAGE_SIZE)
   const currentPage = Math.min(page, Math.max(1, totalPages))
@@ -105,82 +115,169 @@ export default function MyApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
-      <div className="mx-auto w-full max-w-300 px-4 pt-4 pb-8 sm:px-6 lg:px-8 lg:pt-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold sm:text-3xl">
-              My Applications
-            </h1>
+      <div className="mx-auto w-full max-w-[1400px] px-4 pt-4 pb-10 sm:px-6 lg:px-8 lg:pt-6">
+        {/* Hero ----------------------------------------------------------- */}
+        <section className="relative isolate overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0C0C11] px-5 py-8 sm:px-8 sm:py-10">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(124,101,255,0.28),transparent_55%),radial-gradient(ellipse_at_80%_120%,rgba(56,189,248,0.18),transparent_60%)]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 [background-image:linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)] [background-size:36px_36px] opacity-[0.12]"
+          />
 
-            <p className="mt-1.5 text-sm text-zinc-400">
-              Track your job applications and interview progress in real-time.
-            </p>
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#7C65FF]/30 bg-[#7C65FF]/10 px-3 py-1 text-[11px] font-medium text-[#C3BCFF]">
+                <Sparkles className="size-3" aria-hidden="true" />
+                Applications
+              </span>
+
+              <h1 className="mt-4 max-w-2xl text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
+                Every application,{" "}
+                <span className="bg-gradient-to-r from-[#C3BCFF] via-[#8B7BFF] to-[#38BDF8] bg-clip-text text-transparent">
+                  one clear timeline
+                </span>
+                .
+              </h1>
+
+              <p className="mt-2.5 max-w-xl text-sm leading-6 text-zinc-400">
+                {activeApplications.length > 0
+                  ? `${activeApplications.length.toLocaleString()} active ${
+                      activeApplications.length === 1
+                        ? "application"
+                        : "applications"
+                    } in flight. Track reviews, interviews, and offers without losing the thread.`
+                  : "Apply to a role and your progress will show up here, from review to offer."}
+              </p>
+            </div>
+
+            <Link
+              href="/browse-jobs"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-xs font-semibold text-zinc-200 transition-colors hover:border-white/25 hover:text-white"
+            >
+              <Search className="size-3.5" aria-hidden="true" />
+              Find more jobs
+            </Link>
           </div>
+        </section>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center rounded-lg border border-white/[0.07] bg-[#101014] p-1">
-              {TABS.map(({ id, label }) => (
+        {/* Stats ---------------------------------------------------------- */}
+        <div className="mt-4">
+          <ApplicationStats applications={activeApplications} />
+        </div>
+
+        {/* Toolbar -------------------------------------------------------- */}
+        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/[0.07] bg-[#0F0F13] p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+          <div
+            role="group"
+            aria-label="Application status"
+            className="flex items-center gap-0.5 self-start rounded-lg border border-white/10 bg-[#15151B] p-0.5"
+          >
+            {TABS.map(({ id, label }) => {
+              const count =
+                id === "active"
+                  ? activeApplications.length
+                  : archivedApplications.length
+
+              return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => changeTab(id)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                    tab === id ? "bg-white/10 text-white" : "text-zinc-500"
+                  aria-pressed={tab === id}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#7C65FF]/60 focus-visible:outline-none ${
+                    tab === id
+                      ? "bg-white text-[#09090B]"
+                      : "text-zinc-400 hover:text-white"
                   }`}
                 >
                   {label}
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                      tab === id
+                        ? "bg-[#09090B]/10 text-[#09090B]"
+                        : "bg-white/[0.06] text-zinc-500"
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
-              ))}
-            </div>
+              )
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[11px] text-zinc-500" aria-live="polite">
+              <span className="font-semibold text-white">
+                {tabApplications.length.toLocaleString()}
+              </span>{" "}
+              {tabApplications.length === 1 ? "application" : "applications"}{" "}
+              {tab === "active" ? "in progress" : "archived"}
+            </p>
 
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 px-3 text-xs"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[11px] font-medium text-zinc-200 transition-colors hover:border-white/25 hover:text-white focus-visible:ring-2 focus-visible:ring-[#7C65FF]/60 focus-visible:outline-none"
             >
-              <Download className="size-3.5" />
+              <Download className="size-3.5" aria-hidden="true" />
               Export PDF
             </button>
           </div>
-        </header>
-
-        <div className="mt-6">
-          <ApplicationStats applications={activeApplications} />
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-xl border border-white/[0.07] bg-[#101014]">
+        {/* Results -------------------------------------------------------- */}
+        <section
+          aria-label="My applications"
+          className="mt-5 overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0F0F13]"
+        >
           {isLoading ? (
-            <p className="p-10 text-center text-sm text-zinc-400">
-              Loading applications...
-            </p>
+            <div className="flex flex-col items-center gap-3 p-12 text-center">
+              <Loader2
+                className="size-6 animate-spin text-[#7C65FF]"
+                aria-hidden="true"
+              />
+              <p className="text-sm text-zinc-400">
+                Loading your applications...
+              </p>
+            </div>
           ) : error ? (
             <div className="p-10 text-center">
-              <FileText className="mx-auto size-8 text-zinc-600" />
+              <span className="mx-auto flex size-12 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-300">
+                <AlertTriangle className="size-5" aria-hidden="true" />
+              </span>
 
-              <h2 className="mt-3 text-sm font-medium">
+              <h2 className="mt-4 text-sm font-semibold text-white">
                 Could not load applications
               </h2>
 
-              <p className="mt-1 text-xs text-zinc-500">{error}</p>
+              <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-zinc-500">
+                {error}
+              </p>
 
               <button
                 type="button"
                 onClick={() => setReloadToken((token) => token + 1)}
-                className="mt-4 inline-flex rounded-lg border border-white/10 px-4 py-2 text-xs text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
+                className="mt-5 inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 text-xs font-medium text-zinc-200 transition-colors hover:border-white/25 hover:text-white"
               >
+                <RefreshCw className="size-3.5" aria-hidden="true" />
                 Try again
               </button>
             </div>
           ) : visibleApplications.length === 0 ? (
             <div className="p-10 text-center">
-              <FileText className="mx-auto size-8 text-zinc-600" />
+              <span className="mx-auto flex size-12 items-center justify-center rounded-2xl border border-[#7C65FF]/25 bg-[#7C65FF]/10 text-[#C3BCFF]">
+                <FileText className="size-5" aria-hidden="true" />
+              </span>
 
-              <h2 className="mt-3 text-sm font-medium">
+              <h2 className="mt-4 text-sm font-semibold text-white">
                 {tab === "archived"
                   ? "No archived applications"
                   : "No applications yet"}
               </h2>
 
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-zinc-500">
                 {tab === "archived"
                   ? "Applications you archive will show up here."
                   : "Browse jobs and apply to track your progress here."}
@@ -189,9 +286,10 @@ export default function MyApplicationsPage() {
               {tab === "active" && (
                 <Link
                   href="/browse-jobs"
-                  className="mt-4 inline-flex rounded-lg bg-[#5C53FE] px-4 py-2.5 text-sm"
+                  className="mt-5 inline-flex h-9 items-center gap-2 rounded-lg bg-[#7C65FF] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#6C5CFF]"
                 >
-                  Browse Jobs
+                  <Search className="size-3.5" aria-hidden="true" />
+                  Browse jobs
                 </Link>
               )}
             </div>
@@ -199,7 +297,7 @@ export default function MyApplicationsPage() {
             <>
               <ApplicationsTable applications={visibleApplications} />
 
-              <ul className="divide-y divide-white/6 md:hidden">
+              <ul className="divide-y divide-white/[0.06] md:hidden">
                 {visibleApplications.map((application) => (
                   <MobileApplicationCard
                     key={application._id ?? application.jobId}
@@ -216,7 +314,12 @@ export default function MyApplicationsPage() {
               />
             </>
           )}
-        </div>
+        </section>
+
+        <p className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-zinc-600">
+          <ArrowUpRight className="size-3" aria-hidden="true" />
+          Open a job to see the full description and application details.
+        </p>
       </div>
     </div>
   )

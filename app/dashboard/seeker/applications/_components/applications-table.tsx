@@ -1,8 +1,8 @@
 import Link from "next/link"
-
-import { avatarClass, formatAppliedAgo } from "@/lib/application-display"
+import { ArrowUpRight } from "lucide-react"
 
 import { ApplicationStatusBadge } from "@/components/application-status-badge"
+import { avatarClass, formatAppliedAgo } from "@/lib/application-display"
 
 import type { ApplicationRow } from "../_data/applications"
 
@@ -17,7 +17,7 @@ export function ApplicationsTable({
     <div className="dark-scrollbar hidden overflow-x-auto md:block">
       <table className="w-full min-w-180 border-collapse text-left">
         <thead>
-          <tr className="border-b border-white/[0.07] bg-white/2">
+          <tr className="border-b border-white/[0.07] bg-white/[0.02]">
             {COLUMNS.map((label) => (
               <th
                 key={label}
@@ -36,7 +36,7 @@ export function ApplicationsTable({
           {applications.map((application) => (
             <tr
               key={application._id ?? application.jobId}
-              className="border-b border-white/5 transition last:border-0 hover:bg-white/2"
+              className="border-b border-white/[0.06] transition last:border-0 hover:bg-white/[0.02]"
             >
               <td className="px-4 py-3.5">
                 <div className="flex min-w-0 items-center gap-3">
@@ -76,9 +76,10 @@ export function ApplicationsTable({
               <td className="px-4 py-3.5 text-right">
                 <Link
                   href={`/browse-jobs/${application.jobId}`}
-                  className="text-xs font-medium text-zinc-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[#5C53FE]/60 focus-visible:outline-none"
+                  className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-white/25 hover:bg-white/[0.04] hover:text-white focus-visible:ring-2 focus-visible:ring-[#7C65FF]/60 focus-visible:outline-none"
                 >
                   Details
+                  <ArrowUpRight className="size-3" aria-hidden="true" />
                 </Link>
               </td>
             </tr>
