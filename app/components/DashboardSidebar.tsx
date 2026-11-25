@@ -20,7 +20,6 @@ import {
   FileText,
   LayoutDashboard,
   Plus,
-  Settings,
   User,
   Users,
 } from "lucide-react"
@@ -46,7 +45,7 @@ const menuItemsByRole: Record<DashboardRole, MenuItem[]> = {
     {
       id: "seeker-jobs",
       name: "Jobs",
-      url: "/jobs",
+      url: "/dashboard/seeker/jobs",
       icon: Briefcase,
     },
     {
